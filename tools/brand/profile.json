@@ -1,0 +1,1 @@
+{ "repo": "HomenShum", "name": "Homen Shum", "eyebrow": "Agent reliability", "tagline": "An agent's claim that it finished is worthless unless the proof could have failed.", "steps": ["agent says done", "run it", "gate can fail", "proof"], "foot": "homenshum.github.io" }

@@ -32,6 +32,8 @@ if (missing.length) throw new Error(`repos without a group: ${missing}`);
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const slug = r => r.repo.toLowerCase();
 const nameOf = r => r.name || r.repo;
+// Long camel-case names (NodeBenchBoilerplate) may wrap at word joins instead of overflowing a phone.
+const wbr = s => esc(s).replace(/([a-z])([A-Z])/g, "$1<wbr>$2");
 const byRepo = Object.fromEntries(repos.map(r => [r.repo, r]));
 const isLive = u => u && !u.startsWith('https://github.com/');
 const liveUrl = r => isLive(meta[r.repo].homepage) ? meta[r.repo].homepage : (r.live || null);
@@ -170,7 +172,7 @@ function card(r) {
   const facts = [m.language, m.license, liveUrl(r) && 'Live demo'].filter(Boolean);
   return `<li><a class="card" href="/${slug(r)}/">
 <p class="eyebrow">${esc(r.eyebrow)}</p>
-<h3>${esc(nameOf(r))}</h3>
+<h3>${wbr(nameOf(r))}</h3>
 <p class="tag">${esc(r.tagline)}</p>
 <ol class="chain" aria-label="Workflow">${r.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
 <ul class="meta" aria-label="Facts">${facts.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
@@ -221,7 +223,7 @@ function project(r) {
 <section class="hero">
 <div>
 <p class="eyebrow">${esc(r.eyebrow)}</p>
-<h1>${esc(nameOf(r))}</h1>
+<h1>${wbr(nameOf(r))}</h1>
 <p class="lede">${esc(r.tagline)}</p>
 <div class="cta"><a class="btn primary" href="${repoUrl}">View source</a>${live ? `<a class="btn" href="${esc(live)}">Open live demo</a>` : ''}</div>
 </div>

@@ -42,4 +42,6 @@ assert.ok(!header(r, { ...m, homepage: 'https://github.com/HomenShum/NodeMem' },
 const crlf = rewrite('# NodeMem\r\n\r\nBody.\r\n', r, m);
 assert.ok(crlf.includes('brand:end -->\r\n') && !/[^\r]\n/.test(crlf), 'CRLF kept');
 assert.ok(!rewrite('# NodeMem\n\nBody.\n', r, m).includes('\r'), 'LF kept');
-console.log('readme.test: 8 scenarios passed');
+// 9. A homepage that is this portfolio page is not a live demo.
+assert.ok(!header(r, { ...m, homepage: 'https://homenshum.github.io/nodemem/' }, '').includes('Live demo'));
+console.log('readme.test: 9 scenarios passed');

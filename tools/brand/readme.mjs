@@ -21,12 +21,13 @@ export function header(r, m, readme) {
   const slug = r.repo.toLowerCase();
   const name = r.name || r.repo;
   const quick = (readme.match(/^#{2,3} +(quick ?start.*)$/im) || [])[1];
-  const live = m.homepage && !m.homepage.startsWith('https://github.com/') ? m.homepage : null;
+  // A homepage is a live demo only if it is neither GitHub itself nor this portfolio.
+  const live = m.homepage && !/^https:\/\/(github\.com|homenshum\.github\.io)\//.test(m.homepage) ? m.homepage : null;
   const nav = [
     quick && ['Quickstart', `#${anchor(quick)}`],
     m.startHere && ['Code walkthrough', 'docs/START_HERE.md'],
     m.handoff && ['Handoff', 'HANDOFF.md'],
-    live && ['Live demo', live],
+    live && [r.liveLabel || 'Live demo', live],
     ['All projects', `${SITE}/`],
   ].filter(Boolean);
   const alt = `${name}: ${r.tagline}`.replace(/"/g, '&quot;');

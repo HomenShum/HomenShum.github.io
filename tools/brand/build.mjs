@@ -25,8 +25,8 @@ const F = {
 };
 
 export const THEMES = {
-  light: { bg: '#fafafa', panel: '#ffffff', ink: '#111418', muted: '#4b5563', faint: '#7b8490', line: '#e2e5e9', wire: '#c3c8cf', dot: '#111418', dotA: 0.06, accent: '#D97757', accentInk: '#AD5F45', wash: '#fbebe5', glowA: 0.10 },
-  dark: { bg: '#101317', panel: '#171b20', ink: '#f3f4f6', muted: '#a7afb9', faint: '#78818c', line: '#262c33', wire: '#3a424c', dot: '#ffffff', dotA: 0.05, accent: '#D97757', accentInk: '#E8957A', wash: '#2b1d18', glowA: 0.14 },
+  light: { bg: '#fafafa', panel: '#ffffff', ink: '#111418', muted: '#4b5563', faint: '#636c77', line: '#e2e5e9', wire: '#c3c8cf', dot: '#111418', dotA: 0.06, accent: '#D97757', accentInk: '#9c4f37', wash: '#fbebe5', glowA: 0.10 },
+  dark: { bg: '#101317', panel: '#171b20', ink: '#f3f4f6', muted: '#a7afb9', faint: '#8d96a1', line: '#262c33', wire: '#3a424c', dot: '#ffffff', dotA: 0.05, accent: '#D97757', accentInk: '#EC9C82', wash: '#2b1d18', glowA: 0.14 },
 };
 const EASE = 'cubic-bezier(.2,.7,.2,1)';
 const DUR = { pulse: 400, signal: 340, halo: 400 };
@@ -124,7 +124,7 @@ function pipeline(t, steps, box, animate) {
     const y1 = y.toFixed(1);
     out.push(`<rect ${animate ? `class="p" ${at(arrive - 40)} ` : ''}x="${x}" y="${y1}" width="${p.w}" height="${h}" rx="8" fill="${t.panel}" stroke="${last ? t.accent : t.line}" stroke-width="${last ? 1.5 : 1}"/>`);
     if (animate && last) out.push(`<rect class="h" ${at(arrive + 120)} x="${x}" y="${y1}" width="${p.w}" height="${h}" rx="8" fill="none" stroke="${t.accent}" stroke-width="1.5" opacity="0"/>`);
-    out.push(`<g ${animate ? `class="c" ${at(arrive - 40)} ` : ''}fill="${last ? t.accent : t.faint}">${text(F.mono, String(i + 1).padStart(2, '0'), x + padX, y + h / 2 + 4.5, 12)}</g>
+    out.push(`<g ${animate ? `class="c" ${at(arrive - 40)} ` : ''}fill="${last ? t.accentInk : t.faint}">${text(F.mono, String(i + 1).padStart(2, '0'), x + padX, y + h / 2 + 4.5, 12)}</g>
 <g fill="${last ? t.accentInk : t.ink}">${text(F.mono, p.s, x + padX + idxW, y + h / 2 + 5.5, size)}</g>`);
   });
   return out.join('\n');

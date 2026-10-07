@@ -1,7 +1,7 @@
 {
   "NodeKit": {
     "description": "Project factory and CLI for developers and coding agents: scaffold applications, compile definitions and record proof receipts, with canonical ownership and repository conformance checks.",
-    "homepage": null,
+    "homepage": "https://homenshum.github.io/nodekit/",
     "stars": 0,
     "pushedAt": "2026-10-07T13:51:52Z",
     "createdAt": "2026-07-15T06:48:26Z",
@@ -31,9 +31,9 @@
   },
   "NodeAgent": {
     "description": "Agent runtime for room context, document lookup, versioned spreadsheets and notebook memos, with a keyless scripted demo and optional provider adapters.",
-    "homepage": null,
+    "homepage": "https://homenshum.github.io/nodeagent/",
     "stars": 1,
-    "pushedAt": "2026-10-07T08:23:30Z",
+    "pushedAt": "2026-10-07T16:54:28Z",
     "createdAt": "2026-06-05T23:30:51Z",
     "license": null,
     "language": "HTML",
@@ -73,7 +73,7 @@
     "description": "Live room where humans and NodeAgents edit a shared spreadsheet, note, and post-it wall together — never clobbering each other. lock → draft → smart-merge with per-element CAS versioning. Runs deterministic (no keys, in-memory) or live (Convex + model-routed LLM agents). Verified multi-client sync, no refresh.",
     "homepage": "https://noderoom.live",
     "stars": 2,
-    "pushedAt": "2026-10-07T08:26:52Z",
+    "pushedAt": "2026-10-07T17:07:50Z",
     "createdAt": "2026-06-08T20:53:56Z",
     "license": "MIT",
     "language": "TypeScript",
@@ -188,7 +188,7 @@
   },
   "NodeSlide": {
     "description": "NodeSlide — reviewable deck-as-code. Every AI edit is a scoped, validated, receipted proposal, never a silent overwrite. (AI Fund SlideLang EIR)",
-    "homepage": null,
+    "homepage": "https://nodeslide.vercel.app",
     "stars": 0,
     "pushedAt": "2026-10-07T10:15:57Z",
     "createdAt": "2026-07-14T00:56:48Z",
@@ -357,7 +357,7 @@
   },
   "NodeTrace": {
     "description": "UI inspection for agent-built apps: pointer, keyboard and touch access to the trace behind a rendered surface, with a bounded runtime window.",
-    "homepage": null,
+    "homepage": "https://homenshum.github.io/nodetrace/",
     "stars": 1,
     "pushedAt": "2026-10-07T10:51:40Z",
     "createdAt": "2026-06-17T02:38:34Z",
@@ -386,7 +386,7 @@
   },
   "NodeMem": {
     "description": "Provider-agnostic passive memory for agent systems — notices entities in activity streams, surfaces noteworthy suggestions, learns from dismissals, and deduplicates. Convex is one proof, not the only one.",
-    "homepage": null,
+    "homepage": "https://homenshum.github.io/nodemem/",
     "stars": 1,
     "pushedAt": "2026-10-07T10:57:52Z",
     "createdAt": "2026-06-27T06:34:43Z",
@@ -435,7 +435,7 @@
   },
   "NodeProof": {
     "description": "NodeProof: portable proof supervisor for coding agents; one prompt starts the loop, deterministic gates prove the app works.",
-    "homepage": "https://github.com/HomenShum/NodeProof",
+    "homepage": "https://homenshum.github.io/nodeproof/",
     "stars": 0,
     "pushedAt": "2026-09-13T01:19:11Z",
     "createdAt": "2026-07-03T21:11:41Z",
@@ -477,7 +477,7 @@
   },
   "agentic-ui-qa": {
     "description": "QA and dogfooding protocol for agentic application UIs: persona journeys, browser checks, artifact evidence and a bounded repair loop.",
-    "homepage": null,
+    "homepage": "https://homenshum.github.io/agentic-ui-qa/",
     "stars": 0,
     "pushedAt": "2026-10-07T08:23:41Z",
     "createdAt": "2026-07-13T06:50:30Z",
@@ -509,7 +509,7 @@
   },
   "NodeTasks": {
     "description": "Public task corpus and benchmark adapters from NodeRoom. Includes browser tasks, proof receipts, and rubrics.",
-    "homepage": null,
+    "homepage": "https://homenshum.github.io/nodetasks/",
     "stars": 0,
     "pushedAt": "2026-10-07T08:23:47Z",
     "createdAt": "2026-07-09T00:35:14Z",
@@ -539,7 +539,7 @@
   },
   "BetterPRHandoff": {
     "description": "BetterPRHandoff: drop-in protocol for readable agent/dev handoffs, verified demo artifacts, QA dogfood, and runtime diagrams.",
-    "homepage": "https://github.com/HomenShum/BetterPRHandoff",
+    "homepage": "https://homenshum.github.io/betterprhandoff/",
     "stars": 1,
     "pushedAt": "2026-10-07T08:23:52Z",
     "createdAt": "2026-05-04T02:07:26Z",
@@ -589,7 +589,7 @@
   },
   "FeatureClipStudio": {
     "description": "FeatureClipStudio: reproducible Playwright-to-Remotion feature walkthrough GIF/video capture with annotated proof clips.",
-    "homepage": null,
+    "homepage": "https://homenshum.github.io/featureclipstudio/",
     "stars": 1,
     "pushedAt": "2026-10-07T08:24:04Z",
     "createdAt": "2026-06-10T03:43:14Z",
@@ -640,9 +640,9 @@
   },
   "NodeAgentSpec": {
     "description": "NodeAgentSpec: portable markdown spec pack for durable, inspectable AI agent systems.",
-    "homepage": null,
+    "homepage": "https://homenshum.github.io/nodeagentspec/",
     "stars": 0,
-    "pushedAt": "2026-10-07T08:23:58Z",
+    "pushedAt": "2026-10-07T16:50:35Z",
     "createdAt": "2026-07-07T00:23:48Z",
     "license": "MIT",
     "language": "JavaScript",
@@ -671,7 +671,7 @@
   },
   "NodeGraph": {
     "description": "TypeScript semantic graph model and live renderer in one repo: evidence, artifacts, traces and proposals become typed relationships. Model in src/, view in render/; NodeRoom-compatible and storage-neutral.",
-    "homepage": null,
+    "homepage": "https://homenshum.github.io/nodegraph/",
     "stars": 0,
     "pushedAt": "2026-09-09T11:13:17Z",
     "createdAt": "2026-07-08T21:27:33Z",
@@ -704,7 +704,7 @@
   },
   "NodeRL": {
     "description": "Agentic-RL substrate for real software agents: trace -> reward -> memory -> repair. Curated extraction from NodeRoom.",
-    "homepage": null,
+    "homepage": "https://homenshum.github.io/noderl/",
     "stars": 0,
     "pushedAt": "2026-09-06T01:49:57Z",
     "createdAt": "2026-06-29T03:39:30Z",
@@ -797,7 +797,7 @@
   },
   "NodeBenchBoilerplate": {
     "description": "Template for NodeBench MCP agent projects with agent instructions, quality gates, CI and Docker examples. See the handoff for setup and current limits.",
-    "homepage": null,
+    "homepage": "https://homenshum.github.io/nodebenchboilerplate/",
     "stars": 0,
     "pushedAt": "2026-10-05T03:29:57Z",
     "createdAt": "2026-02-07T02:08:25Z",

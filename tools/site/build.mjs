@@ -22,7 +22,7 @@ const meta = JSON.parse(fs.readFileSync(path.join(root, 'tools/site/meta.json'),
 const GROUPS = [
   ['Rooms and products', 'Where people and agents work on the same state.', ['NodeRoom', 'NodeBenchAI', 'NodeSlide', 'NodeVideo', 'NodeVoice']],
   ['Agent runtime and memory', 'What an agent reads, remembers and records.', ['NodeAgent', 'NodeMem', 'NodeGraph', 'NodeTrace', 'NodeRL']],
-  ['Proof and quality', 'Checks that can fail, and the evidence they leave.', ['NodeProof', 'agentic-ui-qa', 'NodeTasks', 'FeatureClipStudio', 'BetterPRHandoff', 'parity-studio']],
+  ['Proof and quality', 'Checks, task corpora and protocols for reviewing agent work.', ['NodeProof', 'agentic-ui-qa', 'NodeTasks', 'FeatureClipStudio', 'BetterPRHandoff', 'parity-studio']],
   ['Build kits and specs', 'Starting points for the next agent application.', ['NodeKit', 'NodeAgentSpec', 'NodeBenchBoilerplate']],
 ];
 const grouped = GROUPS.flatMap(g => g[2]);
@@ -35,18 +35,18 @@ const nameOf = r => r.name || r.repo;
 // Long camel-case names (NodeBenchBoilerplate) may wrap at word joins instead of overflowing a phone.
 const wbr = s => esc(s).replace(/([a-z])([A-Z])/g, "$1<wbr>$2");
 const byRepo = Object.fromEntries(repos.map(r => [r.repo, r]));
-const isLive = u => u && !u.startsWith('https://github.com/');
+const isLive = u => u && !/^https:\/\/(github\.com|homenshum\.github\.io)\//.test(u); // not GitHub, not this site
 const liveUrl = r => isLive(meta[r.repo].homepage) ? meta[r.repo].homepage : (r.live || null);
 const month = iso => new Date(iso).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 
 const CSS = `
 @font-face{font-family:Inter;src:url(/assets/inter.woff2) format("woff2");font-weight:100 900;font-display:swap}
 @font-face{font-family:"JetBrains Mono";src:url(/assets/mono.woff2) format("woff2");font-weight:500;font-display:swap}
-:root{color-scheme:light dark;--bg:#fafafa;--panel:#fff;--ink:#111418;--muted:#4b5563;--faint:#646d78;--line:#e2e5e9;--wire:#c3c8cf;--accent:#D97757;--accent-ink:#AD5F45;
+:root{color-scheme:light dark;--bg:#fafafa;--panel:#fff;--ink:#111418;--muted:#4b5563;--faint:#636c77;--line:#e2e5e9;--wire:#c3c8cf;--accent:#D97757;--accent-ink:#9c4f37;
 --wash:#fbebe5;--r-control:8px;--r-panel:12px;--r-shell:14px;--ease:cubic-bezier(.2,.7,.2,1);--fast:180ms;--pulse:400ms;--hop:260ms;--t0:250ms;
 --shadow-rest:0 0 0 1px rgba(0,0,0,.03),0 1px 2px rgba(0,0,0,.05);--shadow-lift:0 1px 2px rgba(0,0,0,.04),0 14px 34px -14px rgba(17,20,24,.22);
 --ui:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
-@media (prefers-color-scheme:dark){:root{--bg:#101317;--panel:#171b20;--ink:#f3f4f6;--muted:#a7afb9;--faint:#8a929c;--line:#262c33;--wire:#3a424c;--accent-ink:#E8957A;--wash:#2b1d18;
+@media (prefers-color-scheme:dark){:root{--bg:#101317;--panel:#171b20;--ink:#f3f4f6;--muted:#a7afb9;--faint:#8d96a1;--line:#262c33;--wire:#3a424c;--accent-ink:#EC9C82;--wash:#2b1d18;
 --shadow-rest:0 0 0 1px rgba(255,255,255,.045);--shadow-lift:0 0 0 1px rgba(255,255,255,.08),0 28px 80px -26px rgba(0,0,0,.85)}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -78,7 +78,7 @@ font-weight:600;font-size:15px;text-decoration:none;box-shadow:var(--shadow-rest
 background:var(--panel);border:1px solid var(--line);border-radius:var(--r-control);box-shadow:var(--shadow-rest);animation:pulse var(--pulse) var(--ease);animation-delay:calc(var(--t0) + var(--i)*var(--hop) - 40ms)}
 .stair li span{color:var(--faint);font-size:12px}
 .stair li:last-child{border-color:var(--accent);color:var(--accent-ink);margin-bottom:0}
-.stair li:last-child span{color:var(--accent)}
+.stair li:last-child span{color:var(--accent-ink)}
 .stair li+li::before{content:"";position:absolute;left:calc(22px - var(--dx));top:calc(-1*var(--gap) - 1px);width:calc(var(--dx) - 22px);height:calc(var(--gap) + 21px);
 border-left:1.5px solid var(--wire);border-bottom:1.5px solid var(--wire);border-bottom-left-radius:8px;animation:signal var(--pulse) var(--ease);animation-delay:calc(var(--t0) + var(--i)*var(--hop) - 300ms)}
 .stair li:last-child::after{content:"";position:absolute;inset:-1px;border:1.5px solid var(--accent);border-radius:inherit;opacity:0;pointer-events:none;animation:halo var(--pulse) var(--ease);animation-delay:calc(var(--t0) + var(--i)*var(--hop) + 120ms)}
@@ -169,7 +169,7 @@ const person = { '@type': 'Person', name: 'Homen Shum', url: `${SITE}/`, sameAs:
 
 function card(r) {
   const m = meta[r.repo];
-  const facts = [m.language, m.license, liveUrl(r) && 'Live demo'].filter(Boolean);
+  const facts = [m.language, m.license, liveUrl(r) && (r.liveLabel || 'Live demo')].filter(Boolean);
   return `<li><a class="card" href="/${slug(r)}/">
 <p class="eyebrow">${esc(r.eyebrow)}</p>
 <h3>${wbr(nameOf(r))}</h3>
@@ -184,7 +184,7 @@ function home() {
 <div>
 <p class="eyebrow">${esc(profile.eyebrow)} · human and agent collaboration</p>
 <h1>${esc(profile.tagline)}</h1>
-<p class="lede">I build the evidence layer that makes agent work checkable: shared rooms where people and agents edit the same state, runtimes that keep receipts, and gates that refuse a false "done".</p>
+<p class="lede">I build tools that make agent work inspectable: shared rooms where people and agents edit the same state, runtimes that record receipts, and configurable gates that check declared completion criteria.</p>
 <div class="cta"><a class="btn primary" href="#projects">Browse ${repos.length} projects</a><a class="btn" href="${GH}">GitHub profile</a></div>
 </div>
 ${stair(profile.steps)}
@@ -197,7 +197,7 @@ ${GROUPS.map(([title, sub, list]) => `<section class="group" aria-labelledby="g-
 </div>`;
   return page({
     urlPath: '/', title: 'Homen Shum: agent reliability and human-agent collaboration',
-    description: `${profile.tagline} ${repos.length} open-source projects for shared agent rooms, agent runtimes, memory, traces and proof gates.`,
+    description: `${profile.tagline} ${repos.length} public repositories for shared agent rooms, agent runtimes, memory, traces and proof gates.`,
     image: '/brand/HomenShum/social.png',
     jsonld: { '@context': 'https://schema.org', '@graph': [
       { ...person, '@id': `${SITE}/#person`, description: profile.tagline },
@@ -213,7 +213,7 @@ function project(r) {
   const blob = f => `${repoUrl}/blob/${m.branch}/${f}`;
   const links = [
     ['Source on GitHub', repoUrl, 'github'],
-    live && ['Live demo', live, new URL(live).host],
+    live && [r.liveLabel || 'Live demo', live, new URL(live).host],
     m.startHere && ['Code walkthrough', blob('docs/START_HERE.md'), 'START_HERE.md'],
     m.handoff && ['Developer handoff', blob('HANDOFF.md'), 'HANDOFF.md'],
   ].filter(Boolean);
@@ -225,7 +225,7 @@ function project(r) {
 <p class="eyebrow">${esc(r.eyebrow)}</p>
 <h1>${wbr(nameOf(r))}</h1>
 <p class="lede">${esc(r.tagline)}</p>
-<div class="cta"><a class="btn primary" href="${repoUrl}">View source</a>${live ? `<a class="btn" href="${esc(live)}">Open live demo</a>` : ''}</div>
+<div class="cta"><a class="btn primary" href="${repoUrl}">View source</a>${live ? `<a class="btn" href="${esc(live)}">${esc(r.liveLabel || 'Open live demo')}</a>` : ''}</div>
 </div>
 ${stair(r.steps)}
 </section>

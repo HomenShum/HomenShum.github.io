@@ -41,7 +41,7 @@ export function header(r, m, readme) {
   </picture>
 </a>
 
-<p align="center">${nav.map(([label, href]) => `<a href="${href}">${label}</a>`).join(' · ')}</p>
+<p align="center">${nav.map(([label, href]) => `<a href="${href}">${label.replace(/ /g, "&nbsp;")}</a>`).join(' · ')}</p>
 ${END}`;
 }
 

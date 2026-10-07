@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Opens (or refreshes) one README-banner PR per repository.
 #   tools/brand/rollout.sh <workdir> Repo [Repo ...]
-# Each repo: fresh branch claude/readme-banner from its default branch, inject the banner
+# Each repo: fresh branch $BRANCH (default claude/readme-banner) from its default branch, inject the banner
 # block, commit README.md + docs/brand, push, and open a PR if none is open yet.
 set -euo pipefail
+branch="${BRANCH:-claude/readme-banner}"
 here="$(cd "$(dirname "$0")/../.." && pwd)"
 work="$1"; shift
 mkdir -p "$work"
@@ -12,7 +13,7 @@ for repo in "$@"; do
   dir="$work/$repo"
   [ -d "$dir/.git" ] || git clone -q --depth 30 "https://github.com/HomenShum/$repo.git" "$dir"
   git -C "$dir" fetch -q origin "$base"
-  git -C "$dir" checkout -q -B claude/readme-banner "origin/$base"
+  git -C "$dir" checkout -q -B "$branch" "origin/$base"
   node "$here/tools/brand/readme.mjs" "$dir" "$repo"
   git -C "$dir" add README.md docs/brand
   if git -C "$dir" diff --cached --quiet; then echo "$repo: no change"; continue; fi
@@ -25,11 +26,11 @@ The rest of the README is unchanged.
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 MSG
-  git -C "$dir" push -q -f -u origin claude/readme-banner 2>&1 | grep -v "^remote:" || true
-  if [ -z "$(gh pr list -R "HomenShum/$repo" --head claude/readme-banner --state open --json number --jq '.[0].number')" ]; then
-    gh pr create -R "HomenShum/$repo" --base "$base" --head claude/readme-banner \
+  git -C "$dir" push -q -f -u origin "$branch" 2>&1 | grep -v "^remote:" || true
+  if [ -z "$(gh pr list -R "HomenShum/$repo" --head "$branch" --state open --json number --jq '.[0].number')" ]; then
+    gh pr create -R "HomenShum/$repo" --base "$base" --head "$branch" \
       --title "docs(readme): add generated project banner and entry links" \
       --body-file "$here/tools/brand/pr-body.md" >/dev/null
   fi
-  echo "$repo: $(gh pr list -R "HomenShum/$repo" --head claude/readme-banner --state open --json url --jq '.[0].url')"
+  echo "$repo: $(gh pr list -R "HomenShum/$repo" --head "$branch" --state open --json url --jq '.[0].url')"
 done

@@ -85,7 +85,7 @@ const style = t => `<style>
 .s{animation:s ${DUR.signal}ms cubic-bezier(.4,0,.2,1)}
 .h{animation:h ${DUR.halo}ms ${EASE};transform-box:fill-box;transform-origin:center}
 @keyframes p{45%{stroke:${t.accent};fill:${t.wash}}}
-@keyframes c{45%{fill:${t.accent}}}
+@keyframes c{45%{fill:${t.accentInk}}}
 @keyframes s{from{stroke-dashoffset:.55}to{stroke-dashoffset:-1.1}}
 @keyframes h{from{opacity:.8}to{opacity:0;transform:scale(1.12,1.6)}}
 @media (prefers-reduced-motion:reduce){.p,.c,.s,.h{animation:none}}

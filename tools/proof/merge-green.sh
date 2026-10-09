@@ -15,7 +15,8 @@ for pr in "$@"; do
   total=${runs%%$'\t'*}; notok=${runs##*$'\t'}
   wf=$(gh api "repos/HomenShum/$r/actions/runs?head_sha=$sha&per_page=100" --jq '[.workflow_runs[] | select(.status != "completed")] | length')
   if [ "$total" -ge 1 ] && [ "$notok" = "0" ] && [ "$wf" = "0" ]; then
-    gh pr merge "$n" -R "HomenShum/$r" --squash --delete-branch >/dev/null 2>&1
+    # --match-head-commit: merge exactly the commit whose checks were read, or nothing.
+    gh pr merge "$n" -R "HomenShum/$r" --squash --delete-branch --match-head-commit "$sha" >/dev/null 2>&1
     echo "$r #$n -> $(gh pr view "$n" -R "HomenShum/$r" --json state,mergeCommit --jq '.state + " " + (.mergeCommit.oid // "")[0:7]') ($total checks green)"
   else
     echo "$r #$n held: $total check runs, $notok not green, $wf workflow runs unfinished"

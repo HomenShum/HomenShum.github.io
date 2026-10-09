@@ -12,7 +12,8 @@ for (const [label, viewport, scheme] of [['desktop', { width: 1280, height: 900 
   for (const repo of repos) {
     const url = repo === 'HomenShum' ? 'https://github.com/HomenShum' : `https://github.com/HomenShum/${repo}`;
     try {
-      await page.goto(url, { waitUntil: 'networkidle', timeout: 45000 });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 }); // github.com rarely reaches networkidle
+      await page.waitForFunction(() => [...document.querySelectorAll('article.markdown-body img')].slice(0, 3).every(i => i.complete), null, { timeout: 20000 }).catch(() => {});
       const readme = page.locator('article.markdown-body').first();
       await readme.scrollIntoViewIfNeeded({ timeout: 10000 });
       await page.waitForTimeout(1600);

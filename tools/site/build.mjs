@@ -112,6 +112,11 @@ text-decoration:none;transition:transform var(--fast) var(--ease),box-shadow var
 transition:border-color var(--fast) var(--ease),transform var(--fast) var(--ease)}
 .links a:hover{border-color:var(--accent);transform:translateX(2px)}
 .links a span{color:var(--faint);font:500 12px var(--mono)}
+.demo{padding:0 0 64px}.demo h2{font:500 15px/1.4 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--faint);margin:0 0 16px}.demo figure{margin:0}
+.demo img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:var(--r-panel);background:var(--panel);box-shadow:var(--shadow-rest)}
+.demo figcaption{margin-top:12px;font:500 12.5px/1.6 var(--mono);color:var(--faint)}.demo figcaption a{color:var(--muted)}
+.demo .still{display:none;margin:0;padding:18px;border:1px dashed var(--wire);border-radius:var(--r-panel);color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.demo img.anim{display:none}.demo .still{display:block}}
 .topics{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}
 .topics li{font:500 12.5px/1 var(--mono);padding:6px 9px;border-radius:999px;background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent-ink)}
 footer{border-top:1px solid var(--line);padding:28px 0 48px;color:var(--faint);font-size:14px}
@@ -208,6 +213,13 @@ ${GROUPS.map(([title, sub, list]) => `<section class="group" aria-labelledby="g-
   });
 }
 
+// The README's first raster media (fetch.mjs), below the facts and lazy so it is never part of the first paint.
+// The page adds no animation; a GIF plays itself, so under prefers-reduced-motion it is hidden (no JS) and linked instead.
+// No media (none in the README, or over the byte cap) renders nothing.
+const demo = (r, m, repoUrl, gif = /\.gif$/i.test(m.media?.url.split(/[?#]/)[0] || '')) => !m.media ? '' : `<section class="demo" aria-labelledby="demo"><h2 id="demo">From the README</h2>
+<figure><img src="${esc(m.media.url)}" alt="${esc(m.media.alt || `${nameOf(r)} demo from the README`)}" width="${m.media.width}" height="${m.media.height}" loading="lazy" decoding="async"${gif ? ' class="anim"' : ''}>${gif ? `<p class="still">Animated demo hidden because your device asks for reduced motion. <a href="${esc(m.media.url)}">Open the GIF</a>.</p>` : ''}
+<figcaption><code>${esc(r.repo)}/${esc(m.media.path)}</code> · ${m.media.width}×${m.media.height}, ${(m.media.bytes / 1048576).toFixed(1)} MB · <a href="${repoUrl}#readme">in the README</a></figcaption></figure></section>`;
+
 function project(r) {
   const m = meta[r.repo], repoUrl = `${GH}/${r.repo}`, live = liveUrl(r);
   const blob = f => `${repoUrl}/blob/${m.branch}/${f}`;
@@ -242,6 +254,7 @@ ${m.topics.length ? `<h2>Topics</h2><ul class="topics">${m.topics.map(t => `<li>
 <ul class="meta">${[m.language, m.license && `${m.license} license`, `Updated ${month(m.pushedAt)}`].filter(Boolean).map(f => `<li>${esc(f)}</li>`).join('')}</ul>
 </div>
 </section>
+${demo(r, m, repoUrl)}
 <section class="group" aria-labelledby="related">
 <header><h2 id="related">More in ${esc(group[0].toLowerCase())}</h2><p>${esc(group[1])}</p></header>
 <ul class="grid">${related.map(card).join('')}</ul>

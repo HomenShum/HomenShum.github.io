@@ -1,7 +1,7 @@
 // Pure README-media helpers (no network): which image does the project page show, and can a Content-Range be trusted.
 const RASTER = /\.(gif|png|webp|jpe?g)$/i;
 const attr = (tag, n) => tag.match(new RegExp(String.raw`(?:^|\s)` + n + String.raw`\s*=\s*(?:"([^"]*)"|'([^']*)')`, 'i'))?.slice(1).find(v => v !== undefined);
-const unent = s => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'");
+const unent = s => s.replace(/&(#x[0-9a-f]+|#[0-9]+|amp|quot|apos|lt|gt);/gi, (m, e) => ({ amp: '&', quot: '"', apos: "'", lt: '<', gt: '>' })[e.toLowerCase()] ?? (() => { const c = e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : +e.slice(1); return c > 0 && c <= 0x10ffff ? String.fromCodePoint(c) : m; })());
 const norm = s => s.trim().replace(/\s+/g, ' ').toLowerCase();
 
 // First image in the README (outside code fences and <!-- comments -->) whose file is gif/png/webp/jpg/jpeg.

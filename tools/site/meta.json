@@ -42,7 +42,7 @@
     "description": "Agent runtime for room context, document lookup, versioned spreadsheets and notebook memos, with a keyless scripted demo and optional provider adapters.",
     "homepage": "https://homenshum.github.io/nodeagent/",
     "stars": 1,
-    "pushedAt": "2026-10-09T19:17:44Z",
+    "pushedAt": "2026-10-09T19:19:40Z",
     "createdAt": "2026-06-05T23:30:51Z",
     "license": null,
     "language": "HTML",
@@ -82,7 +82,7 @@
       "alt": "A question typed into the chat composer; the agent loop runs and the graph rail populates",
       "width": 960,
       "height": 590,
-      "bytes": 3752304
+      "bytes": 2752757
     },
     "mediaSkipped": null
   },
@@ -409,7 +409,7 @@
     "description": "UI inspection for agent-built apps: pointer, keyboard and touch access to the trace behind a rendered surface, with a bounded runtime window.",
     "homepage": "https://homenshum.github.io/nodetrace/",
     "stars": 1,
-    "pushedAt": "2026-10-09T19:17:50Z",
+    "pushedAt": "2026-10-09T19:20:09Z",
     "createdAt": "2026-06-17T02:38:34Z",
     "license": "MIT",
     "language": "HTML",
@@ -439,7 +439,7 @@
       "alt": "Happy-path trace events rendered live as a graph rail",
       "width": 960,
       "height": 590,
-      "bytes": 2199470
+      "bytes": 1649201
     },
     "mediaSkipped": null
   },

@@ -17,8 +17,11 @@ const cases = {
     assert.deepEqual(firstMedia('![Demo][d]\n\n[d]: <docs/demo run.png> "t"\n'), { alt: 'Demo', src: 'docs/demo run.png' });
   },
   'reference definition: backslash escapes and entities are decoded': () => {
-    assert.equal(firstMedia('![D][d]\n\n[d]: docs/demo\(1\).png\n').src, 'docs/demo(1).png');
-    assert.equal(firstMedia('![D][d]\n\n[d]: docs/a&amp;b.png\n').src, 'docs/a&b.png');
+    const def = (d) => firstMedia('![D][d]\n\n[d]: ' + d + '\n').src;
+    assert.equal(def(String.raw`docs/demo\(1\).png`), 'docs/demo(1).png');
+    assert.equal(def('docs/a&amp;b.png'), 'docs/a&b.png');
+    assert.equal(def('docs/a&#38;b&#x26;c.png'), 'docs/a&b&c.png');
+    assert.equal(def('docs/a&amp;lt;b.png'), 'docs/a&lt;b.png');
   },
   'reference with no definition is skipped, later image wins': () => {
     assert.equal(firstMedia('![ghost][nope]\n![real](a.png)\n').src, 'a.png');

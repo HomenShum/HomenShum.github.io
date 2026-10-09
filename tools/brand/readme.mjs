@@ -1,8 +1,8 @@
 // Puts the generated banner at the top of a repository's README.
 //   node tools/brand/readme.mjs <checkout-dir> <Repo>
-// Copies the four banner SVGs into docs/brand/ and replaces ONLY the first H1 with a
-// <picture> banner (light/dark, wide/phone) and a row of links that exist. Everything else
-// in the README is left as it was. Re-running replaces the marked block instead of stacking.
+// Copies the four banner SVGs into docs/brand/ and inserts a <picture> banner (light/dark,
+// wide/phone) and a row of links that exist ABOVE the first H1, which stays as written.
+// Nothing else in the README changes. Re-running replaces only the marked block.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -57,15 +57,16 @@ export function apply(readme, block, tagline) {
     if (/^\s*(```|~~~)/.test(lines[i])) fence = !fence;
     if (!fence && (/^# \S/.test(lines[i]) || /^<h1[\s>]/i.test(lines[i].trim()))) { h1 = i; break; }
   }
-  if (h1 < 0) throw new Error('no H1 to replace');
+  if (h1 < 0) throw new Error('no H1 to place the banner above');
   const out = [...lines];
   // A subtitle that repeats the banner's tagline word for word is dropped: the banner says it.
   let next = h1 + 1;
   while (next < out.length && out[next].trim() === '') next++;
   const sub = (out[next] || '').match(/^#{2,3} +(.+)$/);
   const drop = sub && norm(sub[1]) === norm(tagline) ? next : -1;
-  out.splice(h1, 1, ...block.split('\n'));
-  if (drop > -1) out.splice(drop + block.split('\n').length - 1, 1);
+  const blockLines = block.split('\n');
+  out.splice(h1, 0, ...blockLines, '');
+  if (drop > -1) out.splice(drop + blockLines.length + 1, 1);
   return out.join('\n');
 }
 

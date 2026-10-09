@@ -11,6 +11,8 @@ const pages = ['/', ...fs.readdirSync('docs', { withFileTypes: true }).filter(d 
 // set it explicitly: every page must show its final frame immediately.
 const b = await chromium.launch();
 const problems = [];
+// innerText collapses runs of whitespace; an alt attribute does not. Compare them collapsed.
+const norm = t => t.trim().replace(/\s+/g, ' ');
 const seen = new Set();
 for (const [label, viewport, scheme] of [['desktop', { width: 1440, height: 1000 }, 'light'], ['phone', { width: 390, height: 844 }, 'dark']]) {
   const ctx = await b.newContext({ viewport, colorScheme: scheme, reducedMotion: 'reduce' });
@@ -37,7 +39,7 @@ for (const [label, viewport, scheme] of [['desktop', { width: 1440, height: 1000
     // Demo-figure contract: sized + lazy + async images, one script (the JSON-LD), and the GIF's description surviving reduced motion.
     if (r.scripts.length !== 1 || r.scripts[0] !== 'application/ld+json') problems.push(`${label} ${path} scripts must be exactly one application/ld+json, got ${JSON.stringify(r.scripts)}`);
     r.imgs.forEach(i => { if (!/^[1-9]\d*$/.test(i.w || '') || !/^[1-9]\d*$/.test(i.h || '') || i.lazy !== 'lazy' || i.dec !== 'async') problems.push(`${label} ${path} .demo img needs numeric width/height, loading=lazy, decoding=async: ${JSON.stringify(i)}`); });
-    r.stills.forEach(x => { if (!x.shown || !x.text.includes(x.alt ?? '')) problems.push(`${label} ${path} reduced-motion .still must show the image alt ${JSON.stringify(x.alt)}, got ${JSON.stringify(x.text)}`); });
+    r.stills.forEach(x => { if (!x.shown || x.alt == null || !norm(x.text).includes(norm(x.alt))) problems.push(`${label} ${path} reduced-motion .still must show the image alt ${JSON.stringify(x.alt)}, got ${JSON.stringify(x.text)}`); });
     if (r.h1 !== 1) problems.push(`${path} has ${r.h1} h1`);
     r.links.forEach(l => seen.add(l.split('#')[0] || '/'));
     if (path === '/' || path === '/nodekit/') await p.screenshot({ path: `${shots}/${label}${path === '/' ? '-home' : '-nodekit'}.png`, fullPage: label === 'phone' ? false : true });

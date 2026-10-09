@@ -1,6 +1,6 @@
 ## What changes
 
-The plain `# Title` at the top of the README becomes a generated banner, followed by a row of links to entry points that exist in this repository. **Nothing else in the README changes.** If the line under the title only repeated the banner's tagline word for word, it is removed.
+A generated banner, followed by a row of links to entry points that exist in this repository, is added above the README's `# Title`, which stays as written. **Nothing else in the README changes.** If the line under the title only repeated the banner's tagline word for word, it is removed.
 
 | Added | What it is |
 |---|---|

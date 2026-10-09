@@ -2,8 +2,9 @@
 // plus each README's first raster media (url, alt, dimensions, bytes) for the project page.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
-import { firstMedia, rangeTotal } from './media.mjs';
+import { firstMedia, hostAllowed, isAnimated, rangeTotal } from './media.mjs';
 const repos = JSON.parse(fs.readFileSync('tools/brand/repos.json', 'utf8'));
+const HEAD_BYTES = 262144; // the most of an image we ever read: enough for any header
 const MAX_BYTES = 4 * 1024 * 1024; // above this a lazy image is still too heavy for a phone; skip it
 const q = `query{ ${repos.map((r, i) => `r${i}: repository(owner:"HomenShum",name:"${r.repo}"){ name description homepageUrl stargazerCount pushedAt createdAt licenseInfo{spdxId} primaryLanguage{name} defaultBranchRef{name} startHere: object(expression:"HEAD:docs/START_HERE.md"){id} handoff: object(expression:"HEAD:HANDOFF.md"){id} readme: object(expression:"HEAD:README.md"){... on Blob{text}} repositoryTopics(first:20){nodes{topic{name}}} }`).join(' ')} }`;
 const data = JSON.parse(execFileSync('gh', ['api', 'graphql', '-f', `query=${q}`], { maxBuffer: 1 << 24 })).data;
@@ -29,6 +30,19 @@ function dims(b) {
   return null;
 }
 
+// README media may be hosted anywhere a README links; only these hosts are ever contacted, https only,
+// and the check runs on every redirect hop (raw.githubusercontent.com and github.com redirect to objects.githubusercontent.com).
+const MEDIA_HOSTS = new Set(['raw.githubusercontent.com', 'github.com', 'objects.githubusercontent.com']);
+async function mediaFetch(url, init, hops = 0) {
+  if (!hostAllowed(url, MEDIA_HOSTS)) throw new Error(`host not allowed: ${new URL(url).hostname}`);
+  const res = await fetch(url, { ...init, redirect: 'manual' });
+  const next = res.status >= 300 && res.status < 400 && res.headers.get('location');
+  if (!next) return res;
+  await res.body?.cancel();
+  if (hops >= 5) throw new Error('too many redirects');
+  return mediaFetch(new URL(next, url).href, init, hops + 1);
+}
+
 async function mediaFor(repo, branch, readme) {
   const ref = firstMedia(readme || '');
   if (!ref) return { skipped: 'no raster media in README' };
@@ -37,22 +51,22 @@ async function mediaFor(repo, branch, readme) {
   try {
     url = new URL(rel ? ref.src.replace(/^\.?\//, '') : ref.src, `https://raw.githubusercontent.com/HomenShum/${repo}/${branch}/`).href;
     const path = rel ? ref.src.replace(/^\.?\//, '').split(/[?#]/)[0] : new URL(url).pathname.split('/').pop();
-    const head = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: AbortSignal.timeout(20000) });
+    const head = await mediaFetch(url, { method: 'HEAD', signal: AbortSignal.timeout(20000) });
     if (!head.ok) return { skipped: `HEAD ${head.status}`, url };
     let bytes = +head.headers.get('content-length') || 0;
     if (bytes > MAX_BYTES) return { skipped: `${bytes} bytes > ${MAX_BYTES}`, url };
-    const get = await fetch(url, { headers: { Range: 'bytes=0-262143' }, redirect: 'follow', signal: AbortSignal.timeout(30000) });
+    const get = await mediaFetch(url, { headers: { Range: `bytes=0-${HEAD_BYTES - 1}` }, signal: AbortSignal.timeout(30000) });
     // Read only the header bytes even if the server ignores Range: the body is abandoned, never buffered whole.
-    const chunks = []; let got = 0;
-    for await (const c of get.body) { chunks.push(c); if ((got += c.length) >= 262144) break; }
-    const buf = Buffer.concat(chunks);
+    const first = Buffer.alloc(HEAD_BYTES); let got = 0; // the only buffer: chunks are copied in, never retained
+    for await (const c of get.body) { got += Buffer.from(c.buffer, c.byteOffset, c.byteLength).copy(first, got, 0, HEAD_BYTES - got); if (got >= HEAD_BYTES) break; }
+    const buf = first.subarray(0, got);
     // The GET is authoritative: 206 -> total from Content-Range, 200 (Range ignored) -> its Content-Length; else unknown.
     bytes = get.status === 206 ? rangeTotal(get.headers.get('content-range')) : get.status === 200 ? +get.headers.get('content-length') || 0 : 0;
     if (!bytes) return { skipped: 'size unknown', url };
     if (bytes > MAX_BYTES) return { skipped: `${bytes} bytes > ${MAX_BYTES}`, url };
     const d = dims(buf);
     if (!d || !d[0] || !d[1]) return { skipped: 'dimensions unreadable', url };
-    return { media: { url, path, alt: ref.alt, width: d[0], height: d[1], bytes } };
+    return { media: { url, path, alt: ref.alt, width: d[0], height: d[1], bytes, animated: isAnimated(buf) } };
   } catch (e) { return { skipped: `fetch failed: ${e.message}`, url }; }
 }
 

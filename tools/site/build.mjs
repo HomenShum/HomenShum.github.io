@@ -214,10 +214,10 @@ ${GROUPS.map(([title, sub, list]) => `<section class="group" aria-labelledby="g-
 }
 
 // The README's first raster media (fetch.mjs), below the facts and lazy so it is never part of the first paint.
-// The page adds no animation; a GIF plays itself, so under prefers-reduced-motion it is hidden (no JS) and linked instead.
+// The page adds no animation; an animated image (classified by its bytes in fetch.mjs, not its extension) plays itself, so under prefers-reduced-motion it is hidden (no JS) and linked instead.
 // No media (none in the README, or over the byte cap) renders nothing.
-const demo = (r, m, repoUrl, gif = /\.gif$/i.test(m.media?.url.split(/[?#]/)[0] || ''), alt = m.media?.alt ?? `${nameOf(r)} demo from the README`) => !m.media ? '' : `<section class="demo" aria-labelledby="demo"><h2 id="demo">From the README</h2>
-<figure><img src="${esc(m.media.url)}" alt="${esc(alt)}" width="${m.media.width}" height="${m.media.height}" loading="lazy" decoding="async"${gif ? ' class="anim"' : ''}>${gif ? `<p class="still">${alt ? `${esc(alt)}${/[.!?]$/.test(alt) ? '' : '.'} ` : ''}Animated demo hidden because your device asks for reduced motion. <a href="${esc(m.media.url)}">Open the GIF</a>.</p>` : ''}
+const demo = (r, m, repoUrl, gif = !!m.media?.animated, alt = m.media?.alt ?? `${nameOf(r)} demo from the README`) => !m.media ? '' : `<section class="demo" aria-labelledby="demo"><h2 id="demo">From the README</h2>
+<figure><img src="${esc(m.media.url)}" alt="${esc(alt)}" width="${m.media.width}" height="${m.media.height}" loading="lazy" decoding="async"${gif ? ' class="anim"' : ''}>${gif ? `<p class="still">${alt ? `${esc(alt)}${/[.!?]$/.test(alt) ? '' : '.'} ` : ''}Animated demo hidden because your device asks for reduced motion. <a href="${esc(m.media.url)}">Open the animation</a>.</p>` : ''}
 <figcaption><code>${esc(r.repo)}/${esc(m.media.path)}</code> · ${m.media.width}×${m.media.height}, ${(m.media.bytes / 1048576).toFixed(1)} MB · <a href="${repoUrl}#readme">in the README</a></figcaption></figure></section>`;
 
 function project(r) {

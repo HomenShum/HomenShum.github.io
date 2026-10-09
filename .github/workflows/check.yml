@@ -1,0 +1,27 @@
+# Runs `npm run check` on every push and pull request.
+# Everything in it is deterministic and offline once dependencies are installed:
+#   - brand tests (readme, profile, contrast, motion) read only files in this repo and render SVGs in local Chromium;
+#   - tools/site/fetch.test.mjs is pure (no network);
+#   - tools/site/check.mjs serves ./docs from an ephemeral localhost port and compares the built pages with the committed tools/site/meta.json.
+# `npm run site` (fetch.mjs reads live GitHub metadata) is NOT run here: it needs the network and its output changes with the world.
+name: check
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # the brand checks write screenshots under proof/ (git-ignored, so absent on a fresh checkout)
+      - run: mkdir -p proof/brand proof/site
+      - run: npm run check

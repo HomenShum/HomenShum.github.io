@@ -3,7 +3,7 @@
     "description": "Project factory and CLI for developers and coding agents: scaffold applications, compile definitions and record proof receipts, with canonical ownership and repository conformance checks.",
     "homepage": "https://homenshum.github.io/nodekit/",
     "stars": 0,
-    "pushedAt": "2026-10-09T19:03:00Z",
+    "pushedAt": "2026-10-09T23:22:54Z",
     "createdAt": "2026-07-15T06:48:26Z",
     "license": "MIT",
     "language": "JavaScript",
@@ -34,7 +34,8 @@
       "alt": "The created app's own web surface (npm run dev), recorded headless: the guided case for 'triage inbound support tickets' walks confirm outcome, prepare proposal, approve the bounded change, and ends on Completion verified with a content-addressed receipt",
       "width": 960,
       "height": 600,
-      "bytes": 1931232
+      "bytes": 1931232,
+      "animated": true
     },
     "mediaSkipped": null
   },
@@ -42,7 +43,7 @@
     "description": "Agent runtime for room context, document lookup, versioned spreadsheets and notebook memos, with a keyless scripted demo and optional provider adapters.",
     "homepage": "https://homenshum.github.io/nodeagent/",
     "stars": 1,
-    "pushedAt": "2026-10-09T19:19:40Z",
+    "pushedAt": "2026-10-09T20:26:26Z",
     "createdAt": "2026-06-05T23:30:51Z",
     "license": null,
     "language": "HTML",
@@ -82,7 +83,8 @@
       "alt": "A question typed into the chat composer; the agent loop runs and the graph rail populates",
       "width": 960,
       "height": 590,
-      "bytes": 2752757
+      "bytes": 2752757,
+      "animated": true
     },
     "mediaSkipped": null
   },
@@ -208,7 +210,8 @@
       "alt": "Demo room running the real collaboration scenario with the live graph rail open — 13 entities and 14 edges built from 34 real room events",
       "width": 800,
       "height": 450,
-      "bytes": 2080980
+      "bytes": 2080980,
+      "animated": true
     },
     "mediaSkipped": null
   },
@@ -216,7 +219,7 @@
     "description": "NodeSlide — reviewable deck-as-code. Every AI edit is a scoped, validated, receipted proposal, never a silent overwrite. (AI Fund SlideLang EIR)",
     "homepage": "https://nodeslide.vercel.app",
     "stars": 0,
-    "pushedAt": "2026-10-09T18:16:04Z",
+    "pushedAt": "2026-10-09T20:30:49Z",
     "createdAt": "2026-07-14T00:56:48Z",
     "license": null,
     "language": "TypeScript",
@@ -258,7 +261,7 @@
     "description": "Image (or live app route) → verified, componentized ui_kit. Self-judged with a 16-check deterministic parity rubric and honest score drift every iteration, so an agent stages only approved design deltas before rewriting your app. Browser-capture → decompose → verify → scoped repair → QA proof packet → apply mapping.",
     "homepage": "https://parity-studio.vercel.app",
     "stars": 1,
-    "pushedAt": "2026-10-09T18:15:01Z",
+    "pushedAt": "2026-10-09T20:30:27Z",
     "createdAt": "2026-04-27T03:03:23Z",
     "license": null,
     "language": "TypeScript",
@@ -297,7 +300,7 @@
     ],
     "media": null,
     "mediaSkipped": {
-      "reason": "7600562 bytes > 4194304",
+      "reason": "fetch failed: host not allowed: release-assets.githubusercontent.com",
       "url": "https://github.com/HomenShum/parity-studio/releases/download/v0.3.1/demo-core-workflow-720.gif"
     }
   },
@@ -344,7 +347,8 @@
       "alt": "NodeVideo durable source-only pipeline",
       "width": 1200,
       "height": 675,
-      "bytes": 380140
+      "bytes": 380140,
+      "animated": true
     },
     "mediaSkipped": null
   },
@@ -352,7 +356,7 @@
     "description": "NodeVoice: shared-state voice rooms for multi-agent voice coordination, steering, traces, and agent-work governance",
     "homepage": "https://nodevoice.vercel.app",
     "stars": 0,
-    "pushedAt": "2026-10-09T18:09:40Z",
+    "pushedAt": "2026-10-09T20:24:49Z",
     "createdAt": "2026-07-04T10:37:40Z",
     "license": null,
     "language": "TypeScript",
@@ -439,7 +443,8 @@
       "alt": "Happy-path trace events rendered live as a graph rail",
       "width": 960,
       "height": 590,
-      "bytes": 1649201
+      "bytes": 1649201,
+      "animated": true
     },
     "mediaSkipped": null
   },
@@ -447,7 +452,7 @@
     "description": "Provider-agnostic passive memory for agent systems — notices entities in activity streams, surfaces noteworthy suggestions, learns from dismissals, and deduplicates. Convex is one proof, not the only one.",
     "homepage": "https://homenshum.github.io/nodemem/",
     "stars": 1,
-    "pushedAt": "2026-10-09T19:18:48Z",
+    "pushedAt": "2026-10-09T20:24:57Z",
     "createdAt": "2026-06-27T06:34:43Z",
     "license": "MIT",
     "language": "HTML",
@@ -496,7 +501,8 @@
       "alt": "Live graph rail: NodeMem notices entities as dim, unmeasured nodes with no edges; a human confirms one suggestion and exactly one faint traversal edge appears",
       "width": 960,
       "height": 590,
-      "bytes": 2417619
+      "bytes": 2417619,
+      "animated": true
     },
     "mediaSkipped": null
   },
@@ -504,7 +510,7 @@
     "description": "NodeProof: portable proof supervisor for coding agents; one prompt starts the loop, deterministic gates prove the app works.",
     "homepage": "https://homenshum.github.io/nodeproof/",
     "stars": 0,
-    "pushedAt": "2026-10-09T18:12:32Z",
+    "pushedAt": "2026-10-09T20:26:19Z",
     "createdAt": "2026-07-03T21:11:41Z",
     "license": "MIT",
     "language": "TypeScript",
@@ -550,7 +556,8 @@
       "alt": "node dist/cli.js init then gate in a throwaway project: the gate FAILS (exit 1) while add() is wrong, and PASSES (exit 0) only after the one-line fix",
       "width": 960,
       "height": 600,
-      "bytes": 1451386
+      "bytes": 1451386,
+      "animated": true
     },
     "mediaSkipped": null
   },
@@ -558,7 +565,7 @@
     "description": "QA and dogfooding protocol for agentic application UIs: persona journeys, browser checks, artifact evidence and a bounded repair loop.",
     "homepage": "https://homenshum.github.io/agentic-ui-qa/",
     "stars": 0,
-    "pushedAt": "2026-10-09T18:12:11Z",
+    "pushedAt": "2026-10-09T20:24:34Z",
     "createdAt": "2026-07-13T06:50:30Z",
     "license": "MIT",
     "language": "JavaScript",
@@ -595,7 +602,7 @@
     "description": "Public task corpus and benchmark adapters from NodeRoom. Includes browser tasks, proof receipts, and rubrics.",
     "homepage": "https://homenshum.github.io/nodetasks/",
     "stars": 0,
-    "pushedAt": "2026-10-09T18:12:40Z",
+    "pushedAt": "2026-10-09T20:24:26Z",
     "createdAt": "2026-07-09T00:35:14Z",
     "license": "MIT",
     "language": "TypeScript",
@@ -626,7 +633,8 @@
       "alt": "NodeTasks Streamlit explorer showing ranked search, saved views, provenance, and NodeAgent catalog Q&A",
       "width": 1000,
       "height": 672,
-      "bytes": 344014
+      "bytes": 344014,
+      "animated": true
     },
     "mediaSkipped": null
   },
@@ -634,7 +642,7 @@
     "description": "BetterPRHandoff: drop-in protocol for readable agent/dev handoffs, verified demo artifacts, QA dogfood, and runtime diagrams.",
     "homepage": "https://homenshum.github.io/betterprhandoff/",
     "stars": 1,
-    "pushedAt": "2026-10-09T18:12:46Z",
+    "pushedAt": "2026-10-09T20:25:03Z",
     "createdAt": "2026-05-04T02:07:26Z",
     "license": "MIT",
     "language": "JavaScript",
@@ -689,7 +697,7 @@
     "description": "FeatureClipStudio: reproducible Playwright-to-Remotion feature walkthrough GIF/video capture with annotated proof clips.",
     "homepage": "https://homenshum.github.io/featureclipstudio/",
     "stars": 1,
-    "pushedAt": "2026-10-09T18:10:45Z",
+    "pushedAt": "2026-10-09T23:24:32Z",
     "createdAt": "2026-06-10T03:43:14Z",
     "license": "MIT",
     "language": "JavaScript",
@@ -742,7 +750,8 @@
       "alt": "A feature walkthrough GIF of NodeRoom: from the landing page, create a shared diligence room, ask the NodeAgent to run diligence on CardioNova — it locks the row, researches, and fills it to complete — then open the audit Trace, where every agent action carries a verdict, attribution, and evidence",
       "width": 720,
       "height": 405,
-      "bytes": 2843694
+      "bytes": 2843694,
+      "animated": true
     },
     "mediaSkipped": null
   },
@@ -786,7 +795,7 @@
     "description": "TypeScript semantic graph model and live renderer in one repo: evidence, artifacts, traces and proposals become typed relationships. Model in src/, view in render/; NodeRoom-compatible and storage-neutral.",
     "homepage": "https://homenshum.github.io/nodegraph/",
     "stars": 0,
-    "pushedAt": "2026-10-09T18:12:18Z",
+    "pushedAt": "2026-10-09T20:27:12Z",
     "createdAt": "2026-07-08T21:27:33Z",
     "license": "MIT",
     "language": "TypeScript",
@@ -824,7 +833,7 @@
     "description": "Agentic-RL substrate for real software agents: trace -> reward -> memory -> repair. Curated extraction from NodeRoom.",
     "homepage": "https://homenshum.github.io/noderl/",
     "stars": 0,
-    "pushedAt": "2026-10-09T18:12:24Z",
+    "pushedAt": "2026-10-09T20:24:44Z",
     "createdAt": "2026-06-29T03:39:30Z",
     "license": "MIT",
     "language": "TypeScript",
@@ -928,7 +937,7 @@
     "description": "Template for NodeBench MCP agent projects with agent instructions, quality gates, CI and Docker examples. See the handoff for setup and current limits.",
     "homepage": "https://homenshum.github.io/nodebenchboilerplate/",
     "stars": 0,
-    "pushedAt": "2026-10-09T18:12:53Z",
+    "pushedAt": "2026-10-09T20:25:09Z",
     "createdAt": "2026-02-07T02:08:25Z",
     "license": "MIT",
     "language": "JavaScript",

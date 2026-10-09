@@ -56,7 +56,8 @@ const rewriteReadme = () => {
   let md = raw.replace(/\r\n/g, '\n');
   const oldHead = new RegExp(
     '^(?:<h2 align="center">Homen Shum</h2>\\n\\n<h3 align="center">[^\\n]*</h3>' +
-    `|<a href="${SITE.replace(/[.]/g, '\\.')}/">\\n  <picture>\\n[\\s\\S]*?\\n  </picture>\\n</a>)\\n`);
+    // The installed banner is matched line by line (no [\s\S] span), so a changed shape fails loudly instead of eating README text.
+    `|<a href="${SITE.replace(/[.]/g, '\\.')}/">\\n  <picture>\\n(?:    <source [^\\n]*>\\n)*    <img [^\\n]*>\\n  </picture>\\n</a>)\\n`);
   if (!oldHead.test(md)) throw new Error('profile header shape changed; update profile.mjs');
   md = md.replace(oldHead, () => `${head}\n`);
   const anchor = '### Background';

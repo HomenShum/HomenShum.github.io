@@ -28,9 +28,16 @@ for (const [label, viewport, scheme] of [['desktop', { width: 1440, height: 1000
       h1: document.querySelectorAll('h1').length,
       links: [...document.querySelectorAll('a[href^="/"]')].map(a => a.getAttribute('href')),
       fonts: [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family),
+      scripts: [...document.scripts].map(s => s.type),
+      imgs: [...document.querySelectorAll('.demo img')].map(i => ({ w: i.getAttribute('width'), h: i.getAttribute('height'), lazy: i.getAttribute('loading'), dec: i.getAttribute('decoding') })),
+      stills: [...document.querySelectorAll('.demo')].filter(d => d.querySelector('img.anim')).map(d => ({ alt: d.querySelector('img.anim').getAttribute('alt'), text: d.querySelector('.still')?.innerText ?? null, shown: !!d.querySelector('.still') && getComputedStyle(d.querySelector('.still')).display !== 'none' && getComputedStyle(d.querySelector('img.anim')).display === 'none' })),
     }));
     if (r.overflow > 0) problems.push(`${label} ${path} overflows by ${r.overflow}px`);
     if (!r.title || !r.desc || !r.canonical || !r.og || !r.ld) problems.push(`${path} missing head metadata ${JSON.stringify({ t: !!r.title, d: !!r.desc, c: !!r.canonical, og: !!r.og, ld: r.ld })}`);
+    // Demo-figure contract: sized + lazy + async images, one script (the JSON-LD), and the GIF's description surviving reduced motion.
+    if (r.scripts.length !== 1 || r.scripts[0] !== 'application/ld+json') problems.push(`${label} ${path} scripts must be exactly one application/ld+json, got ${JSON.stringify(r.scripts)}`);
+    r.imgs.forEach(i => { if (!/^[1-9]\d*$/.test(i.w || '') || !/^[1-9]\d*$/.test(i.h || '') || i.lazy !== 'lazy' || i.dec !== 'async') problems.push(`${label} ${path} .demo img needs numeric width/height, loading=lazy, decoding=async: ${JSON.stringify(i)}`); });
+    r.stills.forEach(x => { if (!x.shown || !x.text.includes(x.alt ?? '')) problems.push(`${label} ${path} reduced-motion .still must show the image alt ${JSON.stringify(x.alt)}, got ${JSON.stringify(x.text)}`); });
     if (r.h1 !== 1) problems.push(`${path} has ${r.h1} h1`);
     r.links.forEach(l => seen.add(l.split('#')[0] || '/'));
     if (path === '/' || path === '/nodekit/') await p.screenshot({ path: `${shots}/${label}${path === '/' ? '-home' : '-nodekit'}.png`, fullPage: label === 'phone' ? false : true });

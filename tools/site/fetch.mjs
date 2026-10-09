@@ -2,21 +2,11 @@
 // plus each README's first raster media (url, alt, dimensions, bytes) for the project page.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import { firstMedia, rangeTotal } from './media.mjs';
 const repos = JSON.parse(fs.readFileSync('tools/brand/repos.json', 'utf8'));
 const MAX_BYTES = 4 * 1024 * 1024; // above this a lazy image is still too heavy for a phone; skip it
 const q = `query{ ${repos.map((r, i) => `r${i}: repository(owner:"HomenShum",name:"${r.repo}"){ name description homepageUrl stargazerCount pushedAt createdAt licenseInfo{spdxId} primaryLanguage{name} defaultBranchRef{name} startHere: object(expression:"HEAD:docs/START_HERE.md"){id} handoff: object(expression:"HEAD:HANDOFF.md"){id} readme: object(expression:"HEAD:README.md"){... on Blob{text}} repositoryTopics(first:20){nodes{topic{name}}} }`).join(' ')} }`;
 const data = JSON.parse(execFileSync('gh', ['api', 'graphql', '-f', `query=${q}`], { maxBuffer: 1 << 24 })).data;
-
-// First ![alt](src) or <img src alt> in the README (outside code fences) whose file is gif/png/webp/jpg/jpeg.
-const RASTER = /\.(gif|png|webp|jpe?g)$/i;
-const attr = (tag, n) => tag.match(new RegExp('(?:^|\\s)' + n +'\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\')', 'i'))?.slice(1).find(v => v !== undefined);
-const unent = s => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'");
-function firstMedia(readme) {
-  const text = readme.replace(/^(```|~~~)[\s\S]*?^\1/gm, '');
-  const refs = [...text.matchAll(/!\[([^\]]*)\]\(\s*<?([^)\s>]+)>?[^)]*\)|<img\b[^>]*>/gi)]
-    .map(m => m[2] ? { alt: m[1], src: m[2] } : { alt: unent(attr(m[0], 'alt') || ''), src: unent(attr(m[0], 'src') || '') });
-  return refs.find(r => RASTER.test(r.src.split(/[?#]/)[0]));
-}
 
 // Image dimensions from the first bytes: PNG IHDR, GIF screen, WebP VP8/VP8L/VP8X, JPEG SOF.
 function dims(b) {
@@ -57,7 +47,7 @@ async function mediaFor(repo, branch, readme) {
     for await (const c of get.body) { chunks.push(c); if ((got += c.length) >= 262144) break; }
     const buf = Buffer.concat(chunks);
     // The GET is authoritative: 206 -> total from Content-Range, 200 (Range ignored) -> its Content-Length; else unknown.
-    bytes = get.status === 206 ? +(get.headers.get('content-range') || '').split('/')[1] || 0 : get.status === 200 ? +get.headers.get('content-length') || 0 : 0;
+    bytes = get.status === 206 ? rangeTotal(get.headers.get('content-range')) : get.status === 200 ? +get.headers.get('content-length') || 0 : 0;
     if (!bytes) return { skipped: 'size unknown', url };
     if (bytes > MAX_BYTES) return { skipped: `${bytes} bytes > ${MAX_BYTES}`, url };
     const d = dims(buf);

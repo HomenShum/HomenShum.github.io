@@ -155,6 +155,7 @@ function page({ urlPath, title, description, image, jsonld, body, main = "" }) {
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
 <link rel="preload" href="/assets/inter.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/mono.woff2" as="font" type="font/woff2" crossorigin>
 <style>${CSS}</style>
 <script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, '\\u003c')}</script>
 </head>

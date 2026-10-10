@@ -3,7 +3,7 @@
     "description": "Project factory and CLI for developers and coding agents: scaffold applications, compile definitions and record proof receipts, with canonical ownership and repository conformance checks.",
     "homepage": "https://homenshum.github.io/nodekit/",
     "stars": 0,
-    "pushedAt": "2026-10-09T23:22:54Z",
+    "pushedAt": "2026-10-10T08:34:31Z",
     "createdAt": "2026-07-15T06:48:26Z",
     "license": "MIT",
     "language": "JavaScript",
@@ -12,7 +12,10 @@
       "cli",
       "coding-agents",
       "developer-tools",
-      "project-scaffolding"
+      "project-scaffolding",
+      "agent-reliability",
+      "nodekit",
+      "proof-receipts"
     ],
     "startHere": true,
     "handoff": false,
@@ -24,6 +27,7 @@
       "Continue native-agent sessions safely",
       "Compare copied behavior",
       "PostgreSQL adapter",
+      "Repository directory",
       "Contracts",
       "Frozen v1 manifest dialect",
       "Honest boundary"
@@ -92,7 +96,7 @@
     "description": "Collaborative diligence room for humans and NodeAgents, with spreadsheets, notebooks and a post-it wall. Versioned CAS writes and reviewable proposals; keyless scripted demo. Shared Convex state and live model calls require configuration. Start: HANDOFF.md and docs/START_HERE.md.",
     "homepage": "https://noderoom.live",
     "stars": 2,
-    "pushedAt": "2026-10-09T18:09:48Z",
+    "pushedAt": "2026-10-10T08:36:09Z",
     "createdAt": "2026-06-08T20:53:56Z",
     "license": "MIT",
     "language": "TypeScript",
@@ -228,7 +232,12 @@
       "deck-as-code",
       "presentation",
       "slides",
-      "typescript"
+      "typescript",
+      "ai-agents",
+      "convex",
+      "powerpoint",
+      "nodeslide",
+      "reviewable-proposals"
     ],
     "startHere": true,
     "handoff": true,
@@ -308,7 +317,7 @@
     "description": "Privacy-first, inspectable video reconstruction workspace with verified worker receipts.",
     "homepage": "https://nodevideo-pi.vercel.app",
     "stars": 0,
-    "pushedAt": "2026-10-09T18:34:55Z",
+    "pushedAt": "2026-10-10T12:38:57Z",
     "createdAt": "2026-07-15T04:01:46Z",
     "license": null,
     "language": "TypeScript",
@@ -317,7 +326,11 @@
       "developer-tools",
       "typescript",
       "video",
-      "video-reconstruction"
+      "video-reconstruction",
+      "local-first",
+      "privacy-first",
+      "video-editing",
+      "nodevideo"
     ],
     "startHere": false,
     "handoff": true,
@@ -574,7 +587,11 @@
       "ai-agents",
       "browser-testing",
       "quality-assurance",
-      "ui-testing"
+      "ui-testing",
+      "agentic-ui",
+      "dogfooding",
+      "persona-testing",
+      "playwright"
     ],
     "startHere": true,
     "handoff": true,
@@ -611,7 +628,11 @@
       "ai-agents",
       "benchmarks",
       "evaluation",
-      "task-corpus"
+      "task-corpus",
+      "browser-tasks",
+      "noderoom",
+      "proof-receipts",
+      "benchmark-adapters"
     ],
     "startHere": false,
     "handoff": true,
@@ -697,7 +718,7 @@
     "description": "FeatureClipStudio: reproducible Playwright-to-Remotion feature walkthrough GIF/video capture with annotated proof clips.",
     "homepage": "https://homenshum.github.io/featureclipstudio/",
     "stars": 1,
-    "pushedAt": "2026-10-09T23:24:32Z",
+    "pushedAt": "2026-10-10T08:42:05Z",
     "createdAt": "2026-06-10T03:43:14Z",
     "license": "MIT",
     "language": "JavaScript",
@@ -750,7 +771,7 @@
       "alt": "A feature walkthrough GIF of NodeRoom: from the landing page, create a shared diligence room, ask the NodeAgent to run diligence on CardioNova — it locks the row, researches, and fills it to complete — then open the audit Trace, where every agent action carries a verdict, attribution, and evidence",
       "width": 720,
       "height": 405,
-      "bytes": 2843694,
+      "bytes": 2154783,
       "animated": true
     },
     "mediaSkipped": null

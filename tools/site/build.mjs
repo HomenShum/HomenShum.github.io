@@ -21,6 +21,7 @@ const LINKEDIN = 'https://www.linkedin.com/in/homen-shum/';
 const repos = JSON.parse(fs.readFileSync(path.join(root, 'tools/brand/repos.json'), 'utf8'));
 const profile = JSON.parse(fs.readFileSync(path.join(root, 'tools/brand/profile.json'), 'utf8'));
 const meta = JSON.parse(fs.readFileSync(path.join(root, 'tools/site/meta.json'), 'utf8'));
+const newest = Object.values(meta).map(m => m.pushedAt).sort().at(-1);
 
 const GROUPS = [
   ['Rooms and products', 'Where people and agents work on the same state.', ['NodeRoom', 'NodeBenchAI', 'NodeSlide', 'NodeVideo', 'NodeVoice']],
@@ -210,7 +211,7 @@ ${GROUPS.map(([title, sub, list]) => `<section class="group" aria-labelledby="g-
     image: '/brand/HomenShum/social.png',
     jsonld: { '@context': 'https://schema.org', '@graph': [
       { ...person, '@id': `${SITE}/#person`, description: profile.tagline },
-      { '@type': 'WebSite', '@id': `${SITE}/#site`, url: `${SITE}/`, name: 'Homen Shum', author: { '@id': `${SITE}/#person` } },
+      { '@type': 'WebSite', '@id': `${SITE}/#site`, url: `${SITE}/`, name: 'Homen Shum', author: { '@id': `${SITE}/#person` }, dateModified: newest.slice(0, 10) },
       { '@type': 'ItemList', itemListElement: grouped.map((n, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE}/${slug(byRepo[n])}/`, name: nameOf(byRepo[n]) })) },
     ] },
     body,
@@ -281,7 +282,6 @@ write('404.html', page({ urlPath: '/404.html', title: 'Not found · Homen Shum',
   body: `<section class="hero"><div><p class="eyebrow">404</p><h1>That page does not exist.</h1><div class="cta"><a class="btn primary" href="/">Back to all projects</a></div></div></section>` }));
 write('.nojekyll', '');
 write('robots.txt', `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
-const newest = Object.values(meta).map(m => m.pushedAt).sort().at(-1);
 write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n<url><loc>${SITE}/</loc><lastmod>${newest.slice(0, 10)}</lastmod></url>\n${repos.map(r => `<url><loc>${SITE}/${slug(r)}/</loc><lastmod>${meta[r.repo].pushedAt.slice(0, 10)}</lastmod></url>`).join('\n')}\n</urlset>\n`);
 write('assets/icon.svg', `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#101317"/><rect x="10" y="10" width="12" height="12" rx="3" fill="#D97757"/></svg>`);
 fs.copyFileSync(path.join(root, 'node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2'), path.join(out, 'assets/inter.woff2'));

@@ -39,7 +39,7 @@ const base = process.argv[2] || await new Promise(done => {
     if (f && fs.existsSync(f) && !fs.realpathSync(f).startsWith(fs.realpathSync(root) + path.sep)) f = null; // a symlink out of docs/
     const ok = !!f && fs.existsSync(f);
     res.writeHead(ok ? 200 : 404, { 'content-type': types[path.extname(ok ? f : '.html')] || 'application/octet-stream' });
-    res.end(fs.readFileSync(ok ? f : path.join(root, '404.html')));
+    res.end(ok ? fs.readFileSync(f) : 'Not found'); // literal 404 body: docs/404.html is not read through a path that skipped the containment checks
   }).listen(0, '127.0.0.1', () => done(`http://127.0.0.1:${server.address().port}`));
 });
 // Playwright emulates reduced-motion per context (it overrides the browser flag), so stills

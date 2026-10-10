@@ -114,12 +114,30 @@ const cases = {
   },
   'a code span does not fuse the text around it into an image; spans stay inside their paragraph': () => {
     assert.equal(firstMedia('![fake]`literal`(docs/fake.png)\n\n![real](docs/real.png)').src, 'docs/real.png');
-    assert.deepEqual(firstMedia('![Run `npm test`](demo.png)'), { alt: 'Run ', src: 'demo.png' });
+    assert.deepEqual(firstMedia('![Run `npm test`](demo.png)'), { alt: 'Run npm test', src: 'demo.png' }); // was 'Run ' before r3: code-span text dropped; CommonMark keeps it in the alt
+    assert.equal(firstMedia('![a ` b ` c](x.png) ![d](y.png)').alt, 'a b c', 'one space is stripped from each side of a padded span');
     assert.equal(firstMedia('a lone `\n\n![real](real.png)\n\nanother lone `').src, 'real.png');
   },
   '<img> attribute text is not read as a comment or a code span': () => {
     assert.equal(firstMedia('<img title="literal <!--" src="docs/real.png">').src, 'docs/real.png');
     assert.equal(firstMedia('<img src="docs/a`b`c.png">').src, 'docs/a`b`c.png');
+    assert.equal(firstMedia(`<img title="... src='wrong'" src="real.png">`).src, 'real.png');
+  },
+  'backticks inside an inline destination are part of the URL, not a code span': () => {
+    assert.deepEqual(firstMedia('![Demo](docs/a`b`c.png)'), { alt: 'Demo', src: 'docs/a`b`c.png' }); // before r3 the src was 'docs/a' + a NUL byte + 'c.png'
+    assert.equal(firstMedia('![x](<docs/demo run.png>)').src, 'docs/demo run.png');
+    assert.equal(firstMedia('`![x](code.png)` ![y](real.png)').src, 'real.png', 'a real span still hides what is inside it');
+    assert.equal(firstMedia('![x][d]\n\n[d]: docs/a`b`c.png').src, 'docs/a`b`c.png', 'same for a reference definition');
+    assert.equal(firstMedia('[guide](guide.md "See `![x](code.png)`") ![real](real.png)').src, 'real.png', 'a span inside a link title still hides its content');
+    assert.equal(firstMedia('![a `x` b](p`q`.png) ![c `y`](r.png)').alt, 'a x b', 'spans are matched to the right alt when several spans precede');
+    assert.equal(firstMedia('![k](docs/a`b`c.png) ![l `d`](docs/e`f`g.png)').src, 'docs/a`b`c.png');
+    assert.deepEqual(firstMedia('`x` ![l `d`](docs/e`f`g.png)'), { alt: 'l d', src: 'docs/e`f`g.png' }, 'earlier spans do not shift later ones');
+    assert.deepEqual(firstMedia('![a\0b](x.png) `wrong`'), { alt: 'a�b', src: 'x.png' }, 'a NUL in the README is not a span placeholder');
+    // stray "](" with no "[" before it, a title across a blank line, an unclosed "[": none of them may expose a comment, span or fence
+    assert.equal(firstMedia('text ](x "<!-- ![fake](fake.png) -->") ![real](real.png)').src, 'real.png');
+    assert.equal(firstMedia('text ](x "`![fake](fake.png)`") ![real](real.png)').src, 'real.png');
+    assert.equal(firstMedia('[a](x "t\n\n```\n![fake](fake.png)\n```\n\n") ![real](real.png)').src, 'real.png', 'a title cannot span a blank line');
+    assert.equal(firstMedia('[unclosed\n\ntext ](x "<!-- ![fake](fake.png) -->") ![real](real.png)').src, 'real.png', 'an unclosed [ does not leak into the next paragraph');
   },
   'fence indentation: top-level closer needs <= 3 spaces; an unclosed indented fence is code, not a fence': () => {
     assert.equal(firstMedia('   ~~~\n    ~~~\n![fake](code.png)\n~~~\n\n![real](real.png)').src, 'real.png');

@@ -7,7 +7,12 @@ const ENTITY = String.raw`&(#x[0-9a-f]+|#[0-9]+|amp|quot|apos|lt|gt);`;
 const unent = s => s.replace(new RegExp(ENTITY, 'gi'), (m, e) => entity(e, m));
 // Markdown strings (destinations, alt, definitions): backslash escapes and entities in ONE left-to-right pass, so `\&amp;` is a literal "&amp;".
 const mdDecode = s => s.replace(new RegExp(String.raw`\\([!-/:-@[-` + '`' + String.raw`{-~])|` + ENTITY, 'gi'), (m, esc, e) => esc ?? entity(e, m));
-const txt = s => mdDecode(s).replace(/\0/g, ''); // alt text: a code span left a NUL placeholder
+// stripCode leaves one NUL per code span, in order, and records the spans. Put them back where a NUL falls in a string that starts at `from` in the stripped text:
+// alt text gets the span's text (CommonMark: `npm test` inside an alt reads "npm test"); a destination or definition gets the span's raw source, because a
+// backtick inside a destination is part of the URL, not a code span.
+const restore = (text, spans, from, s, key) => { let n = text.slice(0, from).split('\0').length - 1; return s.replace(/\0/g, () => spans[n++]?.[key] ?? ''); };
+const altText = (text, spans, from, alt) => restore(text, spans, from, mdDecode(alt), 'text');
+const destText = (text, spans, from, dest) => restore(text, spans, from, mdDecode(dest), 'raw');
 const norm = s => s.trim().replace(/\s+/g, ' ').toLowerCase();
 
 // Remove what GitHub does not render as markdown, scanning left to right so whichever starts first wins:
@@ -16,11 +21,12 @@ const norm = s => s.trim().replace(/\s+/g, ' ').toLowerCase();
 //    except when it is indented 4+ (then it is indented code, not a fence);
 //  - <!-- comments --> (unclosed runs to the end); <img ...> tags are copied whole so their attribute text is never read as markdown;
 //  - code spans: a backtick run closed by a run of exactly the same length within the paragraph; unmatched runs stay literal.
-//    A span leaves one NUL behind so the text around it cannot fuse into link syntax.
+//    A span leaves one NUL behind so the text around it cannot fuse into link syntax; its raw source and text are kept in `spans` (see restore).
 // Backslash pairs are kept intact so `\`` and `\![` stay escaped.
 const FENCE = /( *)(`{3,}|~{3,})([^\n]*)/y, IMG_TAG = /<img\b(?:"[^"]*"|'[^']*'|[^>"'])*>/iy, BLANK = /\n[ \t]*\n/g;
 function stripCode(s) {
   let out = '', i = 0;
+  const spans = [];
   while (i < s.length) {
     if (i === 0 || s[i - 1] === '\n') {
       FENCE.lastIndex = i;
@@ -45,10 +51,14 @@ function stripCode(s) {
       BLANK.lastIndex = k; const para = BLANK.exec(s)?.index ?? s.length;
       let end = -1;
       for (let e = k; end < 0 && (e = s.indexOf('`', e)) >= 0 && e < para;) { let f = e; while (s[f] === '`') f++; if (f - e === k - i) end = f; e = f; }
-      if (end >= 0) { out += '\0'; i = end; } else { out += s.slice(i, k); i = k; }
+      if (end >= 0) { // CommonMark span text: line endings become spaces; one space is stripped from each side of a padded, non-blank span
+        const b = s.slice(k, end - (k - i)).replace(/\r?\n/g, ' ');
+        spans.push({ raw: s.slice(i, end), text: b.length > 2 && b[0] === ' ' && b.at(-1) === ' ' && b.trim() ? b.slice(1, -1) : b });
+        out += '\0'; i = end;
+      } else { out += s.slice(i, k); i = k; }
     } else { out += c; i++; }
   }
-  return out;
+  return { text: out, spans };
 }
 
 // HTML attributes of one tag, first occurrence wins; quoted values may contain other attribute names and '>'.
@@ -75,14 +85,14 @@ function closeBracket(t, from) {
 function inlineDest(t, k) {
   const ws = () => { while (/\s/.test(t[k] ?? '')) k++; };
   ws();
-  let dest;
+  let dest, s;
   if (t[k] === '<') {
-    const s = ++k;
+    s = ++k;
     while (k < t.length && t[k] !== '>' && t[k] !== '\n' && t[k] !== '<') k += t[k] === '\\' ? 2 : 1;
     if (t[k] !== '>') return null;
     dest = t.slice(s, k++);
   } else {
-    const s = k;
+    s = k;
     for (let d = 0; k < t.length && !/\s/.test(t[k]); k++) {
       if (t[k] === '\\') k++;
       else if (t[k] === '(') d++;
@@ -93,16 +103,19 @@ function inlineDest(t, k) {
   ws();
   const q = { '"': '"', "'": "'", '(': ')' }[t[k]];
   if (q) { let e = k + 1; while (e < t.length && t[e] !== q) e += t[e] === '\\' ? 2 : 1; if (e >= t.length) return null; k = e + 1; ws(); }
-  return t[k] === ')' ? { dest, end: k + 1 } : null;
+  return t[k] === ')' ? { dest, from: s, end: k + 1 } : null;
 }
 
 // First image in the README (outside code fences, code spans and <!-- comments -->) whose file is gif/png/webp/jpg/jpeg.
 // Forms: ![alt](src), ![alt](<src with spaces>), ![alt][id] / ![alt][] / ![id] with a `[id]: src` definition, and <img src alt>.
 // alt is '' for an empty markdown alt and undefined only for an <img> with no alt attribute.
 export function firstMedia(readme) {
-  const text = stripCode(readme);
+  const { text, spans } = stripCode(readme.replace(/\0/g, '�')); // CommonMark: a NUL in the input becomes U+FFFD; NUL is stripCode's own placeholder
   const defs = new Map();
-  for (const m of text.matchAll(/^ {0,3}\[([^\]]+)\]:\s*(?:<([^>\n]*)>|(\S+))(?:[ \t]+(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\((?:[^)\\]|\\.)*\)))?[ \t]*$/gm)) if (!defs.has(norm(m[1]))) defs.set(norm(m[1]), mdDecode(m[2] ?? m[3]));
+  for (const m of text.matchAll(/^ {0,3}\[([^\]]+)\]:\s*(?:<([^>\n]*)>|(\S+))(?:[ \t]+(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\((?:[^)\\]|\\.)*\)))?[ \t]*$/gm)) {
+    const dest = m[2] ?? m[3], colon = m[0].indexOf(']:') + 2;
+    if (!defs.has(norm(m[1]))) defs.set(norm(m[1]), destText(text, spans, m.index + colon + m[0].slice(colon).indexOf(dest), dest));
+  }
   const found = [];
   for (let i = text.indexOf('!['); i >= 0; i = text.indexOf('![', i + 2)) {
     let bs = 0; while (text[i - 1 - bs] === '\\') bs++;
@@ -110,9 +123,10 @@ export function firstMedia(readme) {
     const j = closeBracket(text, i + 2);
     if (j < 0) continue;
     const alt = text.slice(i + 2, j), next = text[j + 1];
-    if (next === '(') { const d = inlineDest(text, j + 2); if (d) found.push({ at: i, alt: txt(alt), src: mdDecode(d.dest) }); }
-    else if (next === '[') { const e = closeBracket(text, j + 2); if (e > 0) found.push({ at: i, alt: txt(alt), src: defs.get(norm(text.slice(j + 2, e) || alt)) }); }
-    else found.push({ at: i, alt: txt(alt), src: defs.get(norm(alt)) });
+    const altOut = altText(text, spans, i + 2, alt);
+    if (next === '(') { const d = inlineDest(text, j + 2); if (d) found.push({ at: i, alt: altOut, src: destText(text, spans, d.from, d.dest) }); }
+    else if (next === '[') { const e = closeBracket(text, j + 2); if (e > 0) found.push({ at: i, alt: altOut, src: defs.get(norm(text.slice(j + 2, e) || alt)) }); }
+    else found.push({ at: i, alt: altOut, src: defs.get(norm(alt)) });
   }
   for (const m of text.matchAll(/<img\b(?:"[^"]*"|'[^']*'|[^>"'])*>/gi)) {
     const a = attrs(m[0]);

@@ -11,7 +11,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const out = path.join(root, 'docs');
+// `node tools/site/build.mjs [outDir]`: default docs/; tools/site/check-build.mjs builds into a temp dir to prove docs/ is what this script makes.
+const out = process.argv[2] ? path.resolve(process.argv[2]) : path.join(root, 'docs');
+// The build empties outDir first, so an explicit outDir must be empty (or not exist yet): the build can then never delete anything, whatever alias of a path it is given.
+if (process.argv[2] && fs.existsSync(out) && fs.readdirSync(out).length) throw new Error(`refusing to build into ${out}: it is not empty`);
 const SITE = 'https://homenshum.github.io';
 const GH = 'https://github.com/HomenShum';
 const LINKEDIN = 'https://www.linkedin.com/in/homen-shum/';

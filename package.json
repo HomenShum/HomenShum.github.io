@@ -5,7 +5,8 @@
   "scripts": {
     "brand": "node tools/brand/build.mjs && node tools/brand/preview.mjs",
     "site": "node tools/site/fetch.mjs && node tools/site/build.mjs",
-    "check": "node tools/brand/readme.test.mjs && node tools/brand/profile.test.mjs && node tools/brand/contrast.test.mjs && node tools/brand/motion-check.mjs && node tools/site/fetch.test.mjs && node tools/site/check.mjs",
+    "check": "node tools/brand/readme.test.mjs && node tools/brand/profile.test.mjs && node tools/brand/contrast.test.mjs && node tools/brand/motion-check.mjs && node tools/site/fetch.test.mjs && npm run check:build && node tools/site/check.mjs",
+    "check:build": "node tools/site/check-build.mjs",
     "check:site": "node tools/site/check.mjs"
   },
   "devDependencies": {

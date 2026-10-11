@@ -13,4 +13,6 @@ npx -y lighthouse@12 <url> --preset=perf --form-factor=mobile --screenEmulation.
   --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=<file>.json --chrome-flags="--headless=new"
 ```
 
+Output-only flags (`--quiet`, `--output-path`) may be added; any flag that changes configSettings (throttling, preset, form factor, categories) may not.
+
 Request count is `audits['network-requests'].details.items.length`; byte weight is `audits['total-byte-weight'].numericValue`. Baselines live in `lh-base.md` in the change's evidence folder, one per change that alters page content.

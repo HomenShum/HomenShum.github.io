@@ -3,6 +3,7 @@
 // Copies the four banner SVGs into docs/brand/ and inserts a <picture> banner (light/dark,
 // wide/phone) and a row of links that exist ABOVE the first H1, which stays as written.
 // Nothing else in the README changes. Re-running replaces only the marked block.
+// HomenShum (the profile, see profile.mjs) and HomenShum.github.io (the brand source, hand-maintained) have no marker block by design and are not in repos.json.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

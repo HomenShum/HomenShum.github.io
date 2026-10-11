@@ -1,4 +1,5 @@
 <a href="https://homenshum.github.io/">
+<!-- This repository is the brand source: its own banner is hand-maintained here, not injected by tools/brand/readme.mjs (no brand:start/brand:end block by design). -->
   <picture>
     <source media="(max-width: 600px) and (prefers-color-scheme: dark)" srcset="brand/HomenShum/compact-dark.svg">
     <source media="(max-width: 600px)" srcset="brand/HomenShum/compact-light.svg">

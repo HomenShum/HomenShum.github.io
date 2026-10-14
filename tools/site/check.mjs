@@ -29,7 +29,7 @@ if (problems.length) { console.log(JSON.stringify({ problems }, null, 1)); proce
 const { chromium } = await import('playwright');
 let server;
 const base = process.argv[2] || await new Promise(done => {
-  const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.json': 'application/json', '.xml': 'application/xml', '.txt': 'text/plain', '.ico': 'image/x-icon' };
+  const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2', '.json': 'application/json', '.xml': 'application/xml', '.txt': 'text/plain', '.ico': 'image/x-icon' };
   const root = path.resolve('docs');
   server = http.createServer((req, res) => {
     let f = null;
@@ -72,7 +72,7 @@ for (const [label, viewport, scheme] of [['desktop', { width: 1440, height: 1000
       figs: document.querySelectorAll('.demo > figure').length, allFigs: document.querySelectorAll('figure').length,
       imgs: [...document.querySelectorAll('.demo img')].map(i => ({ w: i.getAttribute('width'), h: i.getAttribute('height'), lazy: i.getAttribute('loading'), dec: i.getAttribute('decoding') })),
       stills: [...document.querySelectorAll('.demo')].filter(d => d.querySelector('img.anim')).map(d => ({ alt: d.querySelector('img.anim').getAttribute('alt'), text: d.querySelector('.still')?.innerText ?? null, shown: !!d.querySelector('.still') && getComputedStyle(d.querySelector('.still')).display !== 'none' && getComputedStyle(d.querySelector('img.anim')).display === 'none' })),
-      previews: [...document.querySelectorAll('.work')].map(a => ({ href: a.getAttribute('href'), text: a.innerText, img: (() => { const i = a.querySelector('img'); return i && { w: i.getAttribute('width'), h: i.getAttribute('height'), alt: i.alt, lazy: i.loading }; })() })),
+      previews: [...document.querySelectorAll('.work')].map(a => ({ href: a.getAttribute('href'), text: a.innerText, img: (() => { const i = a.querySelector('img'); return i && { src: i.getAttribute('src'), w: i.getAttribute('width'), h: i.getAttribute('height'), alt: i.alt, lazy: i.loading }; })() })),
     }));
     if (r.overflow > 0) problems.push(`${label} ${path} overflows by ${r.overflow}px`);
     if (!r.title || !r.desc || !r.canonical || !r.og || !r.ld) problems.push(`${path} missing head metadata ${JSON.stringify({ t: !!r.title, d: !!r.desc, c: !!r.canonical, og: !!r.og, ld: r.ld })}`);
@@ -84,10 +84,26 @@ for (const [label, viewport, scheme] of [['desktop', { width: 1440, height: 1000
     r.imgs.forEach(i => { if (!/^[1-9]\d*$/.test(i.w || '') || !/^[1-9]\d*$/.test(i.h || '') || i.lazy !== 'lazy' || i.dec !== 'async') problems.push(`${label} ${path} .demo img needs numeric width/height, loading=lazy, decoding=async: ${JSON.stringify(i)}`); });
     r.stills.forEach(x => { if (!x.shown || x.alt == null || !norm(x.text).includes(norm(x.alt))) problems.push(`${label} ${path} reduced-motion .still must show the image alt ${JSON.stringify(x.alt)}, got ${JSON.stringify(x.text)}`); });
     if (r.h1 !== 1) problems.push(`${path} has ${r.h1} h1`);
+    // The skip link must move keyboard focus, not just scroll: a non-focusable target leaves focus on <body>.
+    if (path === '/' || path === '/noderoom/') {
+      const skipPage = await ctx.newPage();
+      await skipPage.goto(base + path, { waitUntil: 'domcontentloaded' });
+      await skipPage.locator('a.skip').focus();
+      await skipPage.keyboard.press('Enter');
+      const active = await skipPage.evaluate(() => `${document.activeElement?.tagName}#${document.activeElement?.id}`);
+      if (active !== 'MAIN#main') problems.push(`${label} ${path}: skip link scrolled to #main but keyboard focus is on ${active}, not main#main`);
+      await skipPage.close();
+    }
     if (path === '/') {
       if (r.previews.length !== 3) problems.push(`${label}: a visitor needs three selected-work previews`);
       for (const preview of r.previews) {
         if (!pages.includes(preview.href) || !preview.text.includes('Explore ') || !preview.img?.alt || preview.img.lazy !== 'lazy' || !/^[1-9]\d*$/.test(preview.img.w || '') || !/^[1-9]\d*$/.test(preview.img.h || '')) problems.push(`${label}: unusable selected-work entry ${JSON.stringify(preview)}`);
+      }
+      // Every preview the homepage references must be served as image/jpeg (a missing MIME mapping serves application/octet-stream).
+      for (const preview of r.previews) {
+        const src = preview.img?.src; if (!src) continue;
+        const type = (await fetch(new URL(src, base))).headers.get('content-type');
+        if (type !== 'image/jpeg') problems.push(`${label}: preview image ${src} served as ${type}, want image/jpeg`);
       }
       // A visitor can bypass the large previews and still reach every project.
       await p.getByRole('link', { name: 'All 19 projects', exact: true }).click();

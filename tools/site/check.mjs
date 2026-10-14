@@ -72,6 +72,7 @@ for (const [label, viewport, scheme] of [['desktop', { width: 1440, height: 1000
       figs: document.querySelectorAll('.demo > figure').length, allFigs: document.querySelectorAll('figure').length,
       imgs: [...document.querySelectorAll('.demo img')].map(i => ({ w: i.getAttribute('width'), h: i.getAttribute('height'), lazy: i.getAttribute('loading'), dec: i.getAttribute('decoding') })),
       stills: [...document.querySelectorAll('.demo')].filter(d => d.querySelector('img.anim')).map(d => ({ alt: d.querySelector('img.anim').getAttribute('alt'), text: d.querySelector('.still')?.innerText ?? null, shown: !!d.querySelector('.still') && getComputedStyle(d.querySelector('.still')).display !== 'none' && getComputedStyle(d.querySelector('img.anim')).display === 'none' })),
+      previews: [...document.querySelectorAll('.work')].map(a => ({ href: a.getAttribute('href'), text: a.innerText, img: (() => { const i = a.querySelector('img'); return i && { w: i.getAttribute('width'), h: i.getAttribute('height'), alt: i.alt, lazy: i.loading }; })() })),
     }));
     if (r.overflow > 0) problems.push(`${label} ${path} overflows by ${r.overflow}px`);
     if (!r.title || !r.desc || !r.canonical || !r.og || !r.ld) problems.push(`${path} missing head metadata ${JSON.stringify({ t: !!r.title, d: !!r.desc, c: !!r.canonical, og: !!r.og, ld: r.ld })}`);
@@ -83,6 +84,46 @@ for (const [label, viewport, scheme] of [['desktop', { width: 1440, height: 1000
     r.imgs.forEach(i => { if (!/^[1-9]\d*$/.test(i.w || '') || !/^[1-9]\d*$/.test(i.h || '') || i.lazy !== 'lazy' || i.dec !== 'async') problems.push(`${label} ${path} .demo img needs numeric width/height, loading=lazy, decoding=async: ${JSON.stringify(i)}`); });
     r.stills.forEach(x => { if (!x.shown || x.alt == null || !norm(x.text).includes(norm(x.alt))) problems.push(`${label} ${path} reduced-motion .still must show the image alt ${JSON.stringify(x.alt)}, got ${JSON.stringify(x.text)}`); });
     if (r.h1 !== 1) problems.push(`${path} has ${r.h1} h1`);
+    if (path === '/') {
+      if (r.previews.length !== 3) problems.push(`${label}: a visitor needs three selected-work previews`);
+      for (const preview of r.previews) {
+        if (!pages.includes(preview.href) || !preview.text.includes('Explore ') || !preview.img?.alt || preview.img.lazy !== 'lazy' || !/^[1-9]\d*$/.test(preview.img.w || '') || !/^[1-9]\d*$/.test(preview.img.h || '')) problems.push(`${label}: unusable selected-work entry ${JSON.stringify(preview)}`);
+      }
+      // A visitor can bypass the large previews and still reach every project.
+      await p.getByRole('link', { name: 'All 19 projects', exact: true }).click();
+      if (await p.locator('#projects .card').count() !== 19) problems.push(`${label}: the complete catalog became unreachable`);
+      const catalogPosition = await p.locator('#projects').evaluate(el => el.getBoundingClientRect().top);
+      if (new URL(p.url()).hash !== '#projects' || catalogPosition < -1 || catalogPosition > 24) problems.push(`${label}: catalog bypass did not reach the catalog (top ${catalogPosition})`);
+      // Keyboard navigation must work even when images fail on a slow/broken connection.
+      const keyboardPage = await ctx.newPage();
+      keyboardPage.on('pageerror', e => problems.push(`${label} broken images: ${e.message}`));
+      await keyboardPage.route('**/assets/previews/*.jpg', route => route.abort());
+      await keyboardPage.goto(base + '/', { waitUntil: 'networkidle' });
+      await keyboardPage.keyboard.press('Tab'); // Skip to content
+      await keyboardPage.keyboard.press('Enter');
+      await keyboardPage.keyboard.press('Tab'); // See selected work
+      await keyboardPage.keyboard.press('Enter');
+      // The in-page target must take focus itself: with a non-focusable target nothing matches :focus (waitForSelector(':focus') timed out here).
+      if (!(await keyboardPage.evaluate(() => document.activeElement?.id === 'selected-work'))) problems.push(`${label}: "See selected work" scrolled to the section but keyboard focus did not move into it`);
+      await keyboardPage.keyboard.press('Tab'); // First project preview
+      const focusedHref = await keyboardPage.evaluate(() => document.activeElement?.getAttribute('href'));
+      if (focusedHref !== '/noderoom/') problems.push(`${label}: selected work cannot be reached through keyboard section navigation (focused ${focusedHref})`);
+      await Promise.all([
+        keyboardPage.waitForURL(base + '/noderoom/', { timeout: 10000 }),
+        keyboardPage.keyboard.press('Enter'),
+      ]);
+      await keyboardPage.close();
+      await p.goto(base + '/', { waitUntil: 'networkidle' });
+      for (const img of await p.locator('.work img').all()) {
+        await img.scrollIntoViewIfNeeded();
+        await img.evaluate(i => i.decode());
+        if (!(await img.evaluate(i => i.naturalWidth === 1200 && i.naturalHeight === 800))) problems.push(`${label}: product preview is missing or has unexpected dimensions`);
+      }
+      await p.evaluate(() => scrollTo(0, 0));
+      await p.getByRole('link', { name: 'See selected work', exact: true }).click();
+      await p.screenshot({ path: `${shots}/${label}-selected-work.png`, fullPage: false });
+      await p.evaluate(() => scrollTo(0, 0));
+    } else if (r.previews.length) problems.push(`${label} ${path}: homepage previews leaked into a project page`);
     r.links.forEach(l => seen.add(l.split('#')[0] || '/'));
     if (path === '/' || path === '/nodekit/') await p.screenshot({ path: `${shots}/${label}${path === '/' ? '-home' : '-nodekit'}.png`, fullPage: label === 'phone' ? false : true });
   }

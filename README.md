@@ -31,6 +31,13 @@ workflow read the same on GitHub, on the site and in a link preview.
 3. Check: `npm run check` (README injector scenarios and the motion contract on every banner).
 4. Refresh that repository's README block: `node tools/brand/readme.mjs <checkout> <Repo>`. It only rewrites the block between the `brand:start` and `brand:end` markers.
 
+The homepage's selected-work previews are actual public entry-screen captures in
+`tools/site/previews/`; `captures.json` records their URLs, date and visible state.
+When refreshing them, capture at 1200×800, inspect for private data, update the
+visible capture date in `tools/site/build.mjs`, and rebuild the site. The static
+images reserve their layout and load lazily; they do not certify a product's full
+workflow. Existing project pages and the complete catalog remain available.
+
 ## Design rules this code enforces
 
 - **Tokens, not taste.** Colours, radii and type come from NodeRoom's `src/ui/tokens.css`: terracotta accent `#D97757`, Inter, JetBrains Mono.

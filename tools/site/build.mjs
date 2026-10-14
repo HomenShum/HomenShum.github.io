@@ -29,6 +29,12 @@ const GROUPS = [
   ['Proof and quality', 'Checks, task corpora and protocols for reviewing agent work.', ['NodeProof', 'agentic-ui-qa', 'NodeTasks', 'FeatureClipStudio', 'BetterPRHandoff', 'parity-studio']],
   ['Build kits and specs', 'Starting points for the next agent application.', ['NodeKit', 'NodeAgentSpec', 'NodeBenchBoilerplate']],
 ];
+// Dated captures of the public entry screens, not claims that the product journeys passed.
+const SELECTED = [
+  { repo: 'NodeRoom', title: 'People and AI, in the same workroom.', copy: 'Keep files, spreadsheets and notes together, with agent changes available for review.', alt: 'NodeRoom entry screen with a spreadsheet preview and options to create, join or try a room.' },
+  { repo: 'NodeBenchAI', title: 'A question. An answer you can inspect.', copy: 'Ask about a company or market, then follow the sources behind the response.', alt: 'NodeBench AI entry screen with research starters and a question composer.' },
+  { repo: 'NodeSlide', title: 'From a brief to an editable deck.', copy: 'Start with an idea, then review and refine the presentation in an editable workspace.', alt: 'NodeSlide entry screen with a presentation brief, example prompts and an editable sample.' },
+];
 const grouped = GROUPS.flatMap(g => g[2]);
 const missing = repos.map(r => r.repo).filter(r => !grouped.includes(r));
 if (missing.length) throw new Error(`repos without a group: ${missing}`);
@@ -131,6 +137,30 @@ footer a{color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 `.replace(/\n/g, '');
 
+// Homepage-only styles keep existing project pages byte-identical.
+const SELECTED_CSS = `
+.selected{padding:8px 0 64px;scroll-margin-top:24px}
+.selected header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px 24px;margin-bottom:24px}
+.selected h2{font-size:32px;line-height:1.15;letter-spacing:-.03em;margin:0}
+.selected header p{margin:0;color:var(--muted)}
+.selected-grid{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.selected-grid li:first-child{grid-column:1/-1}
+.work{display:flex;flex-direction:column;height:100%;overflow:hidden;border:1px solid var(--line);border-radius:var(--r-shell);background:var(--panel);text-decoration:none;box-shadow:var(--shadow-rest);transition:border-color var(--fast) var(--ease),box-shadow var(--fast) var(--ease)}
+.work:hover,.work:focus-visible{border-color:var(--accent);box-shadow:var(--shadow-lift)}
+.work img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:contain;background:var(--bg);border-bottom:1px solid var(--line)}
+.work-copy{display:flex;flex-direction:column;align-items:flex-start;padding:28px;gap:14px}
+.work h3{margin:0;font-size:28px;line-height:1.15;letter-spacing:-.025em;text-wrap:balance}
+.work p{margin:0;color:var(--muted);text-wrap:pretty}
+.work .work-link{margin-top:auto;padding-top:8px;font-weight:600;color:var(--accent-ink)}
+.work .work-link span{display:inline-block;transition:transform var(--fast) var(--ease)}
+.work:hover .work-link span{transform:translateX(3px)}
+.selected-grid li:first-child .work{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);align-items:center}
+.selected-grid li:first-child img{border-bottom:0;border-right:1px solid var(--line)}
+.selected-note{margin:18px 0 0;color:var(--faint);font-size:13px}
+@media(max-width:700px){.selected-grid{grid-template-columns:1fr}.selected-grid li:first-child .work{display:flex}.selected-grid li:first-child img{border-right:0;border-bottom:1px solid var(--line)}.work-copy{padding:22px}.selected h2{font-size:28px}}
+@media(prefers-reduced-motion:reduce){.work,.work .work-link span{transition:none}.work:hover .work-link span{transform:none}}
+`.replace(/\n/g, '');
+
 const stair = steps => `<ol class="stair" aria-label="How it works">${steps.map((s, i) => `<li style="--i:${i}"><span>${String(i + 1).padStart(2, '0')}</span>${esc(s)}</li>`).join('')}</ol>`;
 
 function page({ urlPath, title, description, image, jsonld, body, main = "" }) {
@@ -157,7 +187,7 @@ function page({ urlPath, title, description, image, jsonld, body, main = "" }) {
 <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
 <link rel="preload" href="/assets/inter.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/mono.woff2" as="font" type="font/woff2" crossorigin>
-<style>${CSS}</style>
+<style>${CSS}${urlPath === '/' ? SELECTED_CSS : ''}</style>
 <script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, '\\u003c')}</script>
 </head>
 <body>
@@ -195,9 +225,20 @@ function home() {
 <p class="eyebrow">${esc(profile.eyebrow)} · human and agent collaboration</p>
 <h1>${esc(profile.tagline)}</h1>
 <p class="lede">I build tools that make agent work inspectable: shared rooms where people and agents edit the same state, runtimes that record receipts, and configurable gates that check declared completion criteria.</p>
-<div class="cta"><a class="btn primary" href="#projects">Browse ${repos.length} projects</a><a class="btn" href="${GH}">GitHub profile</a></div>
+<div class="cta"><a class="btn primary" href="#selected-work">See selected work</a><a class="btn" href="#projects">All ${repos.length} projects</a></div>
 </div>
 ${stair(profile.steps)}
+</section>
+<section class="selected" id="selected-work" tabindex="-1" aria-labelledby="selected-title">
+<header><h2 id="selected-title">Selected work</h2><p>Three ways to work with AI.</p></header>
+<ul class="selected-grid">${SELECTED.map(s => {
+  const r = byRepo[s.repo];
+  return `<li><a class="work" href="/${slug(r)}/">
+<img src="/assets/previews/${slug(r)}.jpg" alt="${esc(s.alt)}" width="1200" height="800" loading="lazy" decoding="async">
+<div class="work-copy"><p class="eyebrow">${esc(nameOf(r))}</p><h3>${esc(s.title)}</h3><p>${esc(s.copy)}</p><p class="work-link">Explore ${esc(nameOf(r))} <span aria-hidden="true">→</span></p></div>
+</a></li>`;
+}).join('')}</ul>
+<p class="selected-note">Public entry screens · Captured <time datetime="2026-10-14">October 14, 2026</time>. Open a project for its source and demo.</p>
 </section>
 <div id="projects">
 ${GROUPS.map(([title, sub, list]) => `<section class="group" aria-labelledby="g-${slug({ repo: title.replace(/\W+/g, '-') })}">
@@ -286,6 +327,11 @@ write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="htt
 write('assets/icon.svg', `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#101317"/><rect x="10" y="10" width="12" height="12" rx="3" fill="#D97757"/></svg>`);
 fs.copyFileSync(path.join(root, 'node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2'), path.join(out, 'assets/inter.woff2'));
 fs.copyFileSync(path.join(root, 'node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff2'), path.join(out, 'assets/mono.woff2'));
+fs.mkdirSync(path.join(out, 'assets/previews'), { recursive: true });
+for (const { repo } of SELECTED) {
+  const name = `${repo.toLowerCase()}.jpg`;
+  fs.copyFileSync(path.join(root, 'tools/site/previews', name), path.join(out, 'assets/previews', name));
+}
 for (const r of [...repos, profile]) {
   fs.mkdirSync(path.join(out, 'brand', r.repo), { recursive: true });
   fs.copyFileSync(path.join(root, 'brand', r.repo, 'social.png'), path.join(out, 'brand', r.repo, 'social.png')); // og:image

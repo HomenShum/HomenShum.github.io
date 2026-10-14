@@ -1,0 +1,11 @@
+{
+  "capturedOn": "2026-10-14",
+  "viewport": { "width": 1200, "height": 800 },
+  "method": "Unmodified Chrome screenshots of public entry screens, captured through Codex browser tools; no generated interface content.",
+  "scope": "Visual previews only. These captures do not certify authenticated workflows, generated results, production reliability or current model availability.",
+  "captures": [
+    { "file": "noderoom.jpg", "url": "https://noderoom.live/", "state": "Public landing preview; sample spreadsheet is the site's own illustration." },
+    { "file": "nodebenchai.jpg", "url": "https://www.nodebenchai.com/redesign/chat", "state": "Signed-out research entry; no research request submitted." },
+    { "file": "nodeslide.jpg", "url": "https://parity-studio.vercel.app/", "state": "NodeSlide public entry; existing sample deck entry visible; no paid generation submitted." }
+  ]
+}

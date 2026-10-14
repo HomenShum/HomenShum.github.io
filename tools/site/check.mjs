@@ -87,7 +87,8 @@ for (const [label, viewport, scheme] of [['desktop', { width: 1440, height: 1000
     // The skip link must move keyboard focus, not just scroll: a non-focusable target leaves focus on <body>.
     if (path === '/' || path === '/noderoom/') {
       const skipPage = await ctx.newPage();
-      await skipPage.goto(base + path, { waitUntil: 'domcontentloaded' });
+      // Wait for the load event: while the document is still loading (a slow preloaded font on '/' is enough), Chromium applies fragment-navigation focus at the next rendering frame, not during Enter, so a read right after Enter still sees the link focused. Once load has fired it is applied during Enter.
+      await skipPage.goto(base + path, { waitUntil: 'load' });
       await skipPage.locator('a.skip').focus();
       await skipPage.keyboard.press('Enter');
       const active = await skipPage.evaluate(() => `${document.activeElement?.tagName}#${document.activeElement?.id}`);

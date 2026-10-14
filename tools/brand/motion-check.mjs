@@ -41,7 +41,7 @@ for (const repo of repos) for (const kind of ['banner-light', 'compact-dark']) {
   const ok = r.first < 0.0005 && r.mid > 0.0002 && r.reducedFirst < 0.0005 && r.reducedMid < 0.0005;
   if (!ok) failed++;
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${repo}/${kind} firstVsSettled=${r.first.toFixed(5)} midVsSettled=${r.mid.toFixed(5)} reducedFirst=${r.reducedFirst.toFixed(5)} reducedMid=${r.reducedMid.toFixed(5)}`);
-  if (repo === repos[0] && kind === 'banner-light') fs.writeFileSync(path.join(root, 'proof/brand', `motion-${repo}-mid.png`), mid);
+  if (repo === repos[0] && kind === 'banner-light') { fs.mkdirSync(path.join(root, 'proof/brand'), { recursive: true }); fs.writeFileSync(path.join(root, 'proof/brand', `motion-${repo}-mid.png`), mid); }
 }
 await full.close();
 await reduced.close();

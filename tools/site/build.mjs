@@ -66,6 +66,7 @@ a{color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
 .skip{position:absolute;left:-999px;top:8px;background:var(--panel);padding:8px 12px;border-radius:var(--r-control);z-index:9}
 .skip:focus{left:16px}
+main:focus{outline:none}
 .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0}
 .brand{display:inline-flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.01em;text-decoration:none}
@@ -195,7 +196,7 @@ function page({ urlPath, title, description, image, jsonld, body, main = "" }) {
 <div class="wrap">
 <header class="top"><a class="brand" href="/"><span class="mark" aria-hidden="true"></span>Homen Shum</a>
 <nav aria-label="Primary"><a href="/#projects">Projects</a><a href="${GH}">GitHub</a><a href="${LINKEDIN}">LinkedIn</a></nav></header>
-<main id="main"${main ? ` class="${main}"` : ""}>
+<main id="main" tabindex="-1"${main ? ` class="${main}"` : ""}>
 ${body}
 </main>
 </div>

@@ -87,7 +87,9 @@ for (const [label, viewport, scheme] of [['desktop', { width: 1440, height: 1000
     // The skip link must move keyboard focus, not just scroll: a non-focusable target leaves focus on <body>.
     if (path === '/' || path === '/noderoom/') {
       const skipPage = await ctx.newPage();
-      // Wait for load: while the document is still loading (slow preloaded fonts on '/' keep it readyState=interactive) Chromium defers fragment-navigation focus past Enter, so an immediate read can still see the skip link focused. Measured on Chromium 153 with a delayed font; once load has fired the focus is there.
+      // Wait for load. Activating the link while the document is still loading can leave focus on the link. Measured on Chromium 153 (sync-contrast.mjs: one task = focus a.skip, click, read activeElement;
+      // 3 runs x 15 against this build and the live site): A# at readyState 'interactive' in 90 of 90 (main#main was focused two frames later), MAIN#main at readyState 'complete' in 90 of 90.
+      // Waiting for load removes that window. Slow preloaded fonts delaying load are a hypothesis for the CI-only failure, not reproduced: 0 failures in 130 runs with a delayed woff2.
       await skipPage.goto(base + path, { waitUntil: 'load' });
       await skipPage.locator('a.skip').focus();
       await skipPage.keyboard.press('Enter');

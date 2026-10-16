@@ -157,9 +157,22 @@ for (const reducedMotion of ['no-preference', 'reduce']) {
   await p.goto(base + '/', { waitUntil: 'domcontentloaded' });
   const read = () => p.evaluate(() => [...document.querySelectorAll('.stair li')].map(li => ({ o: +getComputedStyle(li).opacity, b: getComputedStyle(li).borderTopColor, a: getComputedStyle(li).animationName })));
   const first = await read();
-  await p.waitForTimeout(250 + 260 - 40 + 180);
-  const mid = await read();
-  await p.waitForTimeout(1800);
+  // Replaced: p.waitForTimeout(250 + 260 - 40 + 180), a wall-clock sample ~690 ms after DOMContentLoaded. Chromium starts the CSS animation
+  // 0-200 ms after DOMContentLoaded, so step 2's pulse window (470-870 ms of its own timeline) could be missed (3 of 5 live runs failed).
+  // Now: seek step 2's own running animation to its 45% keyframe (the accent border) and read the computed colour there; no clock involved.
+  // Under reduce there is no animation to seek, so this is the plain computed colour and the "never lit" comparison below is unchanged.
+  const mid = await p.evaluate(async () => {
+    const li = document.querySelectorAll('.stair li')[1];
+    const a = li.getAnimations().find(x => x.animationName === 'pulse');
+    // Only a pulse that is really playing counts: a paused/stuck one (playState 'paused') is seeked by nobody, so it reads as unlit.
+    let seek = false;
+    if (a) { await a.ready; seek = a.playState === 'running'; }
+    if (seek) { const t = a.effect.getComputedTiming(); a.pause(); a.currentTime = t.delay + 0.45 * t.duration; }
+    const out = [...document.querySelectorAll('.stair li')].map(l => ({ b: getComputedStyle(l).borderTopColor }));
+    if (seek) a.finish();
+    return out;
+  });
+  await p.evaluate(() => Promise.race([Promise.all(document.getAnimations().map(a => a.finished)), new Promise(r => setTimeout(r, 5000))]));
   const settled = await read();
   if (first.some(x => x.o !== 1)) problems.push(`${reducedMotion}: a hero step is hidden on the first frame`);
   if (reducedMotion === 'reduce' && first.some(x => x.a !== 'none')) problems.push('reduce: hero still animates');

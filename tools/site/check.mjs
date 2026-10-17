@@ -24,6 +24,17 @@ for (const s of expected) if (!actual.includes(s)) problems.push(`/${s}/ has med
 for (const s of actual) if (!expected.includes(s)) problems.push(`/${s}/ has a <figure> but no media in meta.json`);
 for (const s of actual) if (figures(s) !== 1) problems.push(`/${s}/ must have exactly one <figure>, has ${figures(s)}`);
 if (figures('') !== 0) problems.push('/ must have no <figure>');
+// Demo cap, derived from meta.json (build.mjs's own source) instead of regex-scanning the docs <section>/<img> markup (first-match --cap, class-sensitive section, double-quote-only attrs).
+// A portrait demo taller than 650 px must carry exactly one --cap: in its page, and it must be --cap:round(650*w/h)px; at the 1072 px content width that cap must render <= 700 px (unrounded).
+// The browser block after the page loop then checks the cap that actually applies (rendered width), so a spelling the source test cannot see (--cap :1000px, data-style=, 468pxx) still fails.
+const portrait = Object.entries(meta).filter(([, v]) => v.media && v.media.height > v.media.width && v.media.height > 650).map(([repo, v]) => ({ slug: repo.toLowerCase(), w: v.media.width, h: v.media.height, want: Math.round(650 * v.media.width / v.media.height) }));
+for (const { slug, w, h, want } of portrait) {
+  const pg = `docs/${slug}/index.html`;
+  const html = fs.existsSync(pg) ? fs.readFileSync(pg, 'utf8').replace(/<!--[\s\S]*?-->/g, '') : '';
+  const caps = html.split('--cap:').length - 1;
+  if (caps !== 1 || !html.includes(`--cap:${want}px`)) problems.push(`demo cap: ${pg} (${w}x${h}) must carry exactly one --cap:${want}px, has ${caps} --cap: occurrence(s)`);
+  if (want * h / w > 700) problems.push(`demo cap: ${pg} (${w}x${h}) --cap:${want}px renders ${Math.round(want * h / w)}px > 700`);
+}
 
 if (problems.length) { console.log(JSON.stringify({ problems }, null, 1)); process.exit(1); } // fail fast, before any browser
 const { chromium } = await import('playwright');
@@ -148,6 +159,19 @@ for (const [label, viewport, scheme] of [['desktop', { width: 1440, height: 1000
   }
   await ctx.close();
 }
+// Effective demo cap: with motion allowed (reduce hides an animated GIF) the demo img of each portrait page must render exactly cap px wide at 1440 px.
+// offline() makes the picture 1x1, but the width attribute still lays the box out, so this measures the CSS cap that applies, not its spelling.
+{
+  const ctx = await b.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'no-preference' });
+  await offline(ctx);
+  const p = await ctx.newPage();
+  for (const { slug, w, h, want } of portrait) {
+    await p.goto(`${base}/${slug}/`, { waitUntil: 'domcontentloaded' });
+    const rw = await p.evaluate(() => document.querySelector('.demo img')?.getBoundingClientRect().width);
+    if (!(Math.abs(rw - want) < 0.5)) problems.push(`demo cap: /${slug}/ (${w}x${h}) renders ${rw}px wide at 1440, wants ${want}px`);
+  }
+  await ctx.close();
+}
 // Motion contract on the hero: the steps are fully visible on the first frame either way;
 // with motion, a step's border lights mid-run and returns; with reduced motion nothing runs.
 for (const reducedMotion of ['no-preference', 'reduce']) {
@@ -164,19 +188,24 @@ for (const reducedMotion of ['no-preference', 'reduce']) {
   const mid = await p.evaluate(async () => {
     const li = document.querySelectorAll('.stair li')[1];
     const a = li.getAnimations().find(x => x.animationName === 'pulse');
-    // Only a pulse that is really playing counts: a paused/stuck one (playState 'paused') is seeked by nobody, so it reads as unlit.
+    // Seek only a pulse that is really playing (a paused/stuck one reads as unlit), finite (finish() throws InvalidStateError on an infinite one),
+    // and whose lit keyframe falls inside the hero's own token budget t0 + hop + pulse (today 650 <= 910 ms). A pulse delayed past that is not seeked, so it reads as unlit.
+    // Replaces hand-parsing getPropertyValue('--t0') (250MS and calc() mis-parsed): a probe inside the step itself lets the browser resolve each token, in the step's own variable scope, to seconds.
+    const ms = n => { const el = document.createElement('i'); li.append(el); el.style.transitionDuration = `var(${n})`; const s = getComputedStyle(el).transitionDuration; el.remove(); return parseFloat(s) * 1000; };
+    const budget = ms('--t0') + ms('--hop') + ms('--pulse');
     let seek = false;
-    if (a) { await a.ready; seek = a.playState === 'running'; }
+    if (a) { await a.ready; const t = a.effect.getComputedTiming(); seek = Number.isFinite(budget) && a.playState === 'running' && Number.isFinite(t.iterations) && t.delay + 0.45 * t.duration <= budget; }
     if (seek) { const t = a.effect.getComputedTiming(); a.pause(); a.currentTime = t.delay + 0.45 * t.duration; }
     const out = [...document.querySelectorAll('.stair li')].map(l => ({ b: getComputedStyle(l).borderTopColor }));
     if (seek) a.finish();
-    return out;
+    return { out, seek };
   });
   await p.evaluate(() => Promise.race([Promise.all(document.getAnimations().map(a => a.finished)), new Promise(r => setTimeout(r, 5000))]));
   const settled = await read();
+  const { out: midCols, seek } = mid;
   if (first.some(x => x.o !== 1)) problems.push(`${reducedMotion}: a hero step is hidden on the first frame`);
   if (reducedMotion === 'reduce' && first.some(x => x.a !== 'none')) problems.push('reduce: hero still animates');
-  if (reducedMotion === 'no-preference' && mid[1].b === settled[1].b) problems.push('no-preference: step 2 never lit (no motion)');
+  if (reducedMotion === 'no-preference' && (!seek || midCols[1].b === settled[1].b)) problems.push('no-preference: step 2 never lit (no motion)');
   if (JSON.stringify(settled.map(x => x.b)) !== JSON.stringify(first.map(x => x.b)) && reducedMotion === 'reduce') problems.push('reduce: frames differ');
   await ctx.close();
 }

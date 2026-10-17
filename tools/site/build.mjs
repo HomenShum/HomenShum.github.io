@@ -124,7 +124,7 @@ transition:border-color var(--fast) var(--ease),transform var(--fast) var(--ease
 .links a:hover{border-color:var(--accent);transform:translateX(2px)}
 .links a span{color:var(--faint);font:500 12px var(--mono)}
 .demo{padding:0 0 64px}.demo h2{font:500 15px/1.4 var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--faint);margin:0 0 16px}.demo figure{margin:0}
-.demo img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:var(--r-panel);background:var(--panel);box-shadow:var(--shadow-rest)}
+.demo img{display:block;max-width:min(100%,var(--cap,100%));height:auto;border:1px solid var(--line);border-radius:var(--r-panel);background:var(--panel);box-shadow:var(--shadow-rest)}
 .demo figcaption{margin-top:12px;font:500 12.5px/1.6 var(--mono);color:var(--faint)}.demo figcaption a{color:var(--muted)}
 .demo .still{display:none;margin:0;padding:18px;border:1px dashed var(--wire);border-radius:var(--r-panel);color:var(--muted)}
 @media (prefers-reduced-motion:reduce){.demo img.anim{display:none}.demo .still{display:block}}
@@ -264,7 +264,7 @@ ${GROUPS.map(([title, sub, list]) => `<section class="group" aria-labelledby="g-
 // The page adds no animation; an animated image (classified by its bytes in fetch.mjs, not its extension) plays itself, so under prefers-reduced-motion it is hidden (no JS) and linked instead.
 // No media (none in the README, or over the byte cap) renders nothing.
 const demo = (r, m, repoUrl, gif = !!m.media?.animated, alt = m.media?.alt ?? `${nameOf(r)} demo from the README`) => !m.media ? '' : `<section class="demo" aria-labelledby="demo"><h2 id="demo">From the README</h2>
-<figure><img src="${esc(m.media.url)}" alt="${esc(alt)}" width="${m.media.width}" height="${m.media.height}" loading="lazy" decoding="async"${gif ? ' class="anim"' : ''}>${gif ? `<p class="still">${alt ? `${esc(alt)}${/[.!?]$/.test(alt) ? '' : '.'} ` : ''}Animated demo hidden because your device asks for reduced motion. <a href="${esc(m.media.url)}">Open the animation</a>.</p>` : ''}
+<figure><img src="${esc(m.media.url)}" alt="${esc(alt)}" width="${m.media.width}" height="${m.media.height}" loading="lazy" decoding="async"${gif ? ' class="anim"' : ''}${m.media.height > m.media.width && m.media.height > 650 ? ` style="--cap:${Math.round(650 * m.media.width / m.media.height)}px"` : ''}>${gif ? `<p class="still">${alt ? `${esc(alt)}${/[.!?]$/.test(alt) ? '' : '.'} ` : ''}Animated demo hidden because your device asks for reduced motion. <a href="${esc(m.media.url)}">Open the animation</a>.</p>` : ''}
 <figcaption><code>${esc(r.repo)}/${esc(m.media.path)}</code> · ${m.media.width}×${m.media.height}, ${(m.media.bytes / 1048576).toFixed(1)} MB · <a href="${repoUrl}#readme">in the README</a></figcaption></figure></section>`;
 
 function project(r) {

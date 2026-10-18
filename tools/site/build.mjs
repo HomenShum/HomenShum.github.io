@@ -128,6 +128,9 @@ transition:border-color var(--fast) var(--ease),transform var(--fast) var(--ease
 .demo figcaption{margin-top:12px;font:500 12.5px/1.6 var(--mono);color:var(--faint)}.demo figcaption a{color:var(--muted)}
 .demo .still{display:none;margin:0;padding:18px;border:1px dashed var(--wire);border-radius:var(--r-panel);color:var(--muted)}
 @media (prefers-reduced-motion:reduce){.demo img.anim{display:none}.demo .still{display:block}}
+@media (min-width:860px){.demo figure.portrait{display:grid;grid-template-columns:minmax(0,var(--cap)) minmax(0,30rem);column-gap:32px;justify-content:start;align-items:start}
+.demo figure.portrait figcaption{margin-top:0;padding-top:12px;border-top:1px solid var(--line);overflow-wrap:anywhere}}
+@media (min-width:860px) and (prefers-reduced-motion:reduce){.demo figure.portrait.gif{display:block}.demo figure.portrait.gif figcaption{margin-top:12px;padding-top:0;border-top:0}}
 .topics{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}
 .topics li{font:500 12.5px/1 var(--mono);padding:6px 9px;border-radius:999px;background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent-ink)}
 footer{border-top:1px solid var(--line);padding:28px 0 48px;color:var(--faint);font-size:14px}
@@ -264,7 +267,7 @@ ${GROUPS.map(([title, sub, list]) => `<section class="group" aria-labelledby="g-
 // The page adds no animation; an animated image (classified by its bytes in fetch.mjs, not its extension) plays itself, so under prefers-reduced-motion it is hidden (no JS) and linked instead.
 // No media (none in the README, or over the byte cap) renders nothing.
 const demo = (r, m, repoUrl, gif = !!m.media?.animated, alt = m.media?.alt ?? `${nameOf(r)} demo from the README`) => !m.media ? '' : `<section class="demo" aria-labelledby="demo"><h2 id="demo">From the README</h2>
-<figure><img src="${esc(m.media.url)}" alt="${esc(alt)}" width="${m.media.width}" height="${m.media.height}" loading="lazy" decoding="async"${gif ? ' class="anim"' : ''}${m.media.height > m.media.width && m.media.height > 650 ? ` style="--cap:${Math.round(650 * m.media.width / m.media.height)}px"` : ''}>${gif ? `<p class="still">${alt ? `${esc(alt)}${/[.!?]$/.test(alt) ? '' : '.'} ` : ''}Animated demo hidden because your device asks for reduced motion. <a href="${esc(m.media.url)}">Open the animation</a>.</p>` : ''}
+<figure${m.media.height > m.media.width && m.media.height > 650 ? ` class="portrait${gif ? ' gif' : ''}" style="--cap:${Math.round(650 * m.media.width / m.media.height)}px"` : ''}><img src="${esc(m.media.url)}" alt="${esc(alt)}" width="${m.media.width}" height="${m.media.height}" loading="lazy" decoding="async"${gif ? ' class="anim"' : ''}>${gif ? `<p class="still">${alt ? `${esc(alt)}${/[.!?]$/.test(alt) ? '' : '.'} ` : ''}Animated demo hidden because your device asks for reduced motion. <a href="${esc(m.media.url)}">Open the animation</a>.</p>` : ''}
 <figcaption><code>${esc(r.repo)}/${esc(m.media.path)}</code> · ${m.media.width}×${m.media.height}, ${(m.media.bytes / 1048576).toFixed(1)} MB · <a href="${repoUrl}#readme">in the README</a></figcaption></figure></section>`;
 
 function project(r) {

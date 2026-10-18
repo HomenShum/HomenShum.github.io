@@ -8,7 +8,10 @@
 # while queued runs exist (this merged NodeGraph#3 early on 2026-10-07).
 # Both queries MUST paginate: per_page=100 alone hid 105 of NodeBenchAI main 8b4846ba's 205 check runs.
 # usage: tools/proof/merge-green.sh Repo/123 [Repo/456 ...]   (exit 2 if any arg is not Repo/PR)
-# exit 0: every PR merged, already closed, or held on checks; exit 1: a PR head was unreadable or a merge did not land; exit 2: bad arg.
+# exit 0: every PR merged, already closed, or held on checks.
+# exit 1: a PR head was unreadable, or a merge could not be confirmed (it failed, or its outcome was unreadable).
+# exit 2: a bad arg. Precedence when several apply across PRs: 2 > 1 > 0.
+# Offline test (stub gh, run by `npm run check`): tools/proof/merge-green.test.sh
 rc=0
 for pr in "$@"; do
   [[ $pr =~ ^[A-Za-z0-9._-]+/[0-9]+$ ]] || { echo "$pr: expected Repo/PR" >&2; rc=2; continue; }
@@ -22,10 +25,14 @@ for pr in "$@"; do
   wf=$(grep -c . <<<"$wf")
   if [ "$total" -ge 1 ] && [ "$notok" = "0" ] && [ "$wf" = "0" ]; then
     # --match-head-commit: merge exactly the commit whose checks were read, or nothing.
-    err=$(gh pr merge "$n" -R "HomenShum/$r" --squash --delete-branch --match-head-commit "$sha" 2>&1 >/dev/null)
+    err=$(gh pr merge "$n" -R "HomenShum/$r" --squash --delete-branch --match-head-commit "$sha" 2>&1 >/dev/null); mrc=$?
     after=$(gh pr view "$n" -R "HomenShum/$r" --json state,mergeCommit --jq '.state + " " + (.mergeCommit.oid // "")[0:7]')
     if [ "${after%% *}" = MERGED ]; then echo "$r #$n -> $after ($total checks green)"
-    else echo "$r #$n merge failed: $(head -n1 <<<"${err:-state is ${after:-unreadable}}")"; rc=$((rc>1?rc:1)); fi
+    else
+      # merge exited 0 with no stderr but the PR can't be read back: unconfirmed, not failed
+      if [ "$mrc" = 0 ] && [ -z "$err" ] && [ -z "$after" ]; then msg="merge unconfirmed"; else msg="merge failed: $(head -n1 <<<"${err:-state is ${after:-unreadable}}")"; fi
+      echo "$r #$n $msg"; rc=$((rc>1?rc:1))
+    fi
   else
     echo "$r #$n held: $total check runs, $notok not green, $wf workflow runs unfinished"
   fi

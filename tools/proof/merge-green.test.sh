@@ -49,6 +49,8 @@ PRE="OPEN $SHA" POST="MERGED_BOGUS 1234567" CHECKS=$GREEN MERGE_ERR="merge confl
 PRE="OPEN $SHA" POST="OPEN " CHECKS=$GREEN MERGE_ERR="" MERGE_RC=0 t "merge rc 0 but still OPEN -> 'merge failed', exit 1" 1 "Repo #7 merge failed: state is OPEN" 1 Repo/7
 PRE="OPEN $SHA" POST="" CHECKS=$GREEN MERGE_ERR="" MERGE_RC=0 t "merge rc 0, no stderr, post-merge view unreadable -> 'merge unconfirmed', exit 1" 1 "Repo #7 merge unconfirmed" 1 Repo/7
 PRE="OPEN $SHA" POST="" CHECKS=$GREEN MERGE_ERR="boom" MERGE_RC=1 t "merge rc 1, post-merge view unreadable -> 'merge failed', exit 1" 1 "Repo #7 merge failed: boom" 1 Repo/7
+PRE="OPEN $SHA" POST="" CHECKS=$GREEN MERGE_ERR="" MERGE_RC=1 t "merge rc 1 with empty stderr, post-merge view unreadable -> 'merge failed', exit 1" 1 "Repo #7 merge failed: state is unreadable" 1 Repo/7
+PRE="OPEN $SHA" POST="" CHECKS=$GREEN MERGE_ERR="warning" MERGE_RC=0 t "merge rc 0 with stderr, post-merge view unreadable -> 'merge failed', exit 1" 1 "Repo #7 merge failed: warning" 1 Repo/7
 # the merge must be pinned to the head commit whose checks were read
 PRE="OPEN $SHA" POST="MERGED 1234567" CHECKS=$GREEN MERGE_ERR="" MERGE_RC=0 t "merge call pinned with --match-head-commit" 0 "-> MERGED" 1 Repo/7
 if grep -q -- "--match-head-commit $SHA" "$CALLS"; then echo "ok   - gh pr merge carried --match-head-commit <head sha>"; else echo "FAIL - gh pr merge missing --match-head-commit <head sha>: $(cat "$CALLS")"; fail=1; fi

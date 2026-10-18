@@ -9,20 +9,35 @@ trap 'rm -rf "$work"' EXIT
 mkdir "$work/bin"
 cat >"$work/bin/gh" <<'STUB'
 #!/usr/bin/env bash
-# Stub gh: PRE/POST = `pr view` output before/after the merge, CHECKS = check-run verdicts, MERGE_ERR/MERGE_RC = `pr merge`.
+# Stub gh: PRE/POST = `pr view` output before/after the merge, MERGE_ERR/MERGE_RC = `pr merge`.
+# `api --paginate` answers with what the script's own --jq would print:
+#   check-runs: CHECKS (ok/bad per run), or -- when CHECK_JSON is set -- the script's real --jq expression run by jq over that JSON;
+#   actions/runs: WF (one id per unfinished workflow run);
+#   API_FAIL=check-runs|actions-runs makes that call exit 1.
 echo "gh $*" >>"$CALLS"
 case "$1 $2" in
   "pr view") if [[ " $* " == *headRefOid* ]]; then printf '%s\n' "$PRE"; else printf '%s\n' "$POST"; fi ;;
   "pr merge") [ -n "$MERGE_ERR" ] && echo "$MERGE_ERR" >&2; exit "$MERGE_RC" ;;
-  "api --paginate") if [[ "$*" == *check-runs* ]]; then printf '%s' "$CHECKS"; fi ;;
+  "api --paginate")
+    if [[ "$*" == *check-runs* ]]; then
+      [ "$API_FAIL" = check-runs ] && { echo "stub gh: check-runs failed" >&2; exit 1; }
+      if [ -n "$CHECK_JSON" ]; then
+        expr=; prev=; for a in "$@"; do [ "$prev" = --jq ] && expr=$a; prev=$a; done
+        printf '%s' "$CHECK_JSON" | jq -r "$expr"
+      else printf '%s' "$CHECKS"; fi
+    elif [[ "$*" == *actions/runs* ]]; then
+      [ "$API_FAIL" = actions-runs ] && { echo "stub gh: actions-runs failed" >&2; exit 1; }
+      printf '%s' "$WF"
+    fi ;;
   *) echo "stub gh: unexpected $*" >&2; exit 99 ;;
 esac
 STUB
 chmod +x "$work/bin/gh"
 export CALLS="$work/calls.log" PATH="$work/bin:$PATH"
+unset WF API_FAIL CHECK_JSON   # per-case knobs: set only via a case's env prefix
 SHA=$(printf 'a%.0s' {1..40}); GREEN=$'ok\nok\nok\n'
 fail=0
-# t NAME WANT_RC WANT_OUTPUT_FRAGMENT WANT_MERGE_CALLS(0|1) args...   (PRE/POST/CHECKS/MERGE_* come from the caller's env prefix)
+# t NAME WANT_RC WANT_OUTPUT_FRAGMENT WANT_MERGE_CALLS(0|1) args...   (PRE/POST/CHECKS/WF/API_FAIL/CHECK_JSON/MERGE_* come from the caller's env prefix)
 t() {
   local name=$1 want_rc=$2 want_out=$3 want_merges=$4; shift 4
   : >"$CALLS"
@@ -51,6 +66,22 @@ PRE="OPEN $SHA" POST="" CHECKS=$GREEN MERGE_ERR="" MERGE_RC=0 t "merge rc 0, no 
 PRE="OPEN $SHA" POST="" CHECKS=$GREEN MERGE_ERR="boom" MERGE_RC=1 t "merge rc 1, post-merge view unreadable -> 'merge failed', exit 1" 1 "Repo #7 merge failed: boom" 1 Repo/7
 PRE="OPEN $SHA" POST="" CHECKS=$GREEN MERGE_ERR="" MERGE_RC=1 t "merge rc 1 with empty stderr, post-merge view unreadable -> 'merge failed', exit 1" 1 "Repo #7 merge failed: state is unreadable" 1 Repo/7
 PRE="OPEN $SHA" POST="" CHECKS=$GREEN MERGE_ERR="warning" MERGE_RC=0 t "merge rc 0 with stderr, post-merge view unreadable -> 'merge failed', exit 1" 1 "Repo #7 merge failed: warning" 1 Repo/7
+# workflow-run gate: green check runs are not enough while an Actions workflow run for the head is unfinished
+PRE="OPEN $SHA" POST="OPEN " CHECKS=$GREEN WF=$'101\n' MERGE_ERR="" MERGE_RC=0 t "green checks + 1 unfinished workflow run -> hold, exit 0, no merge call" 0 "Repo #7 held: 3 check runs, 0 not green, 1 workflow runs unfinished" 0 Repo/7
+PRE="OPEN $SHA" POST="MERGED 1234567" CHECKS=$GREEN WF="" MERGE_ERR="" MERGE_RC=0 t "green checks + no unfinished workflow run -> merges" 0 "Repo #7 -> MERGED 1234567 (3 checks green)" 1 Repo/7
+# a failed query must hold the merge: its empty output cannot be read as 'nothing pending'
+PRE="OPEN $SHA" POST="OPEN " CHECKS=$GREEN API_FAIL=check-runs MERGE_ERR="" MERGE_RC=0 t "check-runs query fails -> hold, exit 0, no merge call" 0 "Repo #7 held: check-runs query failed" 0 Repo/7
+PRE="OPEN $SHA" POST="OPEN " CHECKS=$GREEN API_FAIL=actions-runs MERGE_ERR="" MERGE_RC=0 t "workflow-runs query fails -> hold, exit 0, no merge call" 0 "Repo #7 held: workflow-runs query failed" 0 Repo/7
+# exit-code precedence: a bad arg (2) must not be downgraded by a later failed merge (1)
+PRE="OPEN $SHA" POST="OPEN " CHECKS=$GREEN MERGE_ERR="merge conflict" MERGE_RC=1 t "bad arg then failed merge -> exit 2 wins over 1" 2 "Repo #7 merge failed: merge conflict" 1 bad-arg Repo/7
+# the script's real --jq conclusion filter, evaluated by jq: ubuntu CI has jq; a box without it skips this case
+if command -v jq >/dev/null 2>&1; then
+  RUNS='{"check_runs":[{"status":"completed","conclusion":"success"},{"status":"completed","conclusion":"skipped"},{"status":"completed","conclusion":"neutral"},{"status":"completed","conclusion":"failure"},{"status":"completed","conclusion":"cancelled"},{"status":"queued","conclusion":null}]}'
+  PRE="OPEN $SHA" POST="OPEN " CHECK_JSON=$RUNS MERGE_ERR="" MERGE_RC=0 t "conclusion filter: failure/cancelled/unfinished are not green -> hold" 0 "Repo #7 held: 6 check runs, 3 not green, 0 workflow runs unfinished" 0 Repo/7
+  PRE="OPEN $SHA" POST="MERGED 1234567" CHECK_JSON='{"check_runs":[{"status":"completed","conclusion":"success"},{"status":"completed","conclusion":"skipped"},{"status":"completed","conclusion":"neutral"}]}' MERGE_ERR="" MERGE_RC=0 t "conclusion filter: success/skipped/neutral are green -> merges" 0 "Repo #7 -> MERGED 1234567 (3 checks green)" 1 Repo/7
+else
+  echo "skip - conclusion filter (no jq)"
+fi
 # the merge must be pinned to the head commit whose checks were read
 PRE="OPEN $SHA" POST="MERGED 1234567" CHECKS=$GREEN MERGE_ERR="" MERGE_RC=0 t "merge call pinned with --match-head-commit" 0 "-> MERGED" 1 Repo/7
 if grep -q -- "--match-head-commit $SHA" "$CALLS"; then echo "ok   - gh pr merge carried --match-head-commit <head sha>"; else echo "FAIL - gh pr merge missing --match-head-commit <head sha>: $(cat "$CALLS")"; fail=1; fi

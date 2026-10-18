@@ -25,3 +25,5 @@ jobs:
       # the brand checks write screenshots under proof/ (git-ignored, so absent on a fresh checkout)
       - run: mkdir -p proof/brand proof/site
       - run: npm run check
+        env:
+          REQUIRE_JQ: '1'

@@ -81,6 +81,8 @@ if command -v jq >/dev/null 2>&1; then
   PRE="OPEN $SHA" POST="MERGED 1234567" CHECK_JSON='{"check_runs":[{"status":"completed","conclusion":"success"},{"status":"completed","conclusion":"skipped"},{"status":"completed","conclusion":"neutral"}]}' MERGE_ERR="" MERGE_RC=0 t "conclusion filter: success/skipped/neutral are green -> merges" 0 "Repo #7 -> MERGED 1234567 (3 checks green)" 1 Repo/7
 else
   echo "skip - conclusion filter (no jq)"
+  # CI sets REQUIRE_JQ=1: a runner image without jq must fail loudly, not silently drop the cases that kill the filter mutants
+  [ "${REQUIRE_JQ:-}" = 1 ] && { echo "FAIL - jq required (REQUIRE_JQ=1) but not found"; fail=1; }
 fi
 # the merge must be pinned to the head commit whose checks were read
 PRE="OPEN $SHA" POST="MERGED 1234567" CHECKS=$GREEN MERGE_ERR="" MERGE_RC=0 t "merge call pinned with --match-head-commit" 0 "-> MERGED" 1 Repo/7
